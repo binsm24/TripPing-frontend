@@ -1,3 +1,7 @@
+# =========================================================
+# Node 기본 설정값
+# =========================================================
+
 # Logs
 logs
 *.log
@@ -141,3 +145,39 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+
+# =========================================================
+# 백엔드(Spring Boot) 및 OS 환경을 위해 추가
+# =========================================================
+
+# OS & 에디터 관련
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+
+# 백엔드 빌드 결과물 & Gradle
+build/
+bin/
+obj/
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+*.class
+
+# 하이브리드 앱 (Capacitor) 관련
+/android/.gradle/
+/android/app/build/
+/android/local.properties
+/android/.idea/
+
+# =========================================================
+# keystore 커밋 예방
+# =========================================================
+
+*.jks
+*.keystore
+/android/app/release/
+/android/keystore.properties
