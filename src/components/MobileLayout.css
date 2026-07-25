@@ -1,42 +1,13 @@
 .mobile-layout {
   height: 100dvh;
-  max-width: 480px;   /* 데스크톱 브라우저에서 볼 때 폰 폭으로 제한 (실기기에선 자연스럽게 꽉 참) */
+  max-width: 480px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   background: var(--color-ground);
+  padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
   position: relative;
-}
-
-.mobile-layout__topbar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 52px;
-  padding: 0 16px;
-  padding-top: var(--safe-top);
-  background: var(--color-ground);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.mobile-layout__topbar-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--color-natural);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.mobile-layout__content {
-  flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
