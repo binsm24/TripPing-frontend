@@ -1,0 +1,73 @@
+.login {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.login__hero {
+  flex: 0 0 56%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login__logo {
+  width: 300px;
+  height: auto;
+}
+
+.login__panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  border-radius: var(--radius-card-outer) var(--radius-card-outer) 0 0;
+  margin-top: -24px;
+  position: relative;
+  z-index: 1;
+  padding: 40px 24px 32px;
+}
+
+.login__title {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 48px;
+}
+
+.login__btn {
+  width: 100%;
+  max-width: 340px;
+  height: 52px;
+  border-radius: var(--radius-card-inner);
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.login__btn + .login__btn {
+  margin-top: 40px;
+}
+
+.login__btn--kakao {
+  background: var(--color-kakao);
+  color: #1f1f1f;
+}
+
+.login__btn--guest {
+  background: var(--color-natural);
+  color: var(--color-text);
+}
+
+.login__btn-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
