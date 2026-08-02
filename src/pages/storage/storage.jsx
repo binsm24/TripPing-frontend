@@ -3,6 +3,7 @@ import MobileLayout from '../../components/MobileLayout';
 import ArchiveCard from './ArchiveCard';
 import symbolImg from '../../assets/symbolW.png';
 import './storage.css';
+import { BookMarked } from 'lucide-react'
 
 // 계획된 API: GET /api/saved-courses
 const SAVED_COURSES_ENDPOINT = '/api/saved-courses';
@@ -101,11 +102,14 @@ export default function storage({ courses: coursesOverride, onNavigateHome, onSe
   };
 
   return (
-    <MobileLayout background="linear-gradient(180deg, var(--color-ground, #f5f7f8) 0%, var(--color-sub, #cff9ff) 100%)">
+    <MobileLayout background="linear-gradient(180deg, #ffffff 0%, var(--color-ground) 40%, var(--color-sub) 100%)">
       <div className="archive-page">
         <header className="archive-header">
           <div className="archive-header__text">
-            <h1 className="archive-header__title">📁 나의 여행 기록</h1>
+            <h1 className="archive-header__title"> 
+              <BookMarked size={24} /> 
+              <span>나의 여행 기록</span>
+            </h1>
             <p className="archive-header__subtitle">
               {hasCourses ? '마음에 둔 여행, 열어볼까요?' : '새로운 기록을 남겨보세요.'}
             </p>
