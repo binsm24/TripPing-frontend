@@ -2,7 +2,8 @@
 // 이 화면은 순수 표시 전용. API 호출(코스 생성/지역 변환/보관함 저장)은
 // prepareCourseResult()에서 미리 끝내고, 완성된 데이터를 location.state로 받아서 그리기만 함.
 // (화면 사이 로딩은 별도 로딩 화면에서 prepareCourseResult 호출 후 이 화면으로 navigate)
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, MapPin, Clock, MessageCircle, FlagTriangleRight } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -49,33 +50,37 @@ export default function Result() {
   }, [courseData, navigate]);
 
   // 첫 핀 중심 ~ 마지막 핀 중심까지의 점선 위치를 실제 DOM 기준으로 측정.
-  // ResizeObserver를 쓰기 때문에 이미지 로딩으로 항목 높이가 바뀌거나,
-  // 캡처 시 max-height가 풀려서 리스트가 펼쳐질 때도 자동으로 다시 계산됨.
+  // ResizeObserver 콜백(비동기)뿐 아니라, 캡처 직전 리스트를 강제로 펼칠 때도
+  // 이 함수를 그대로 재사용해서 동기적으로 재계산할 수 있도록 분리해둠.
+  const measureLine = useCallback(() => {
+    const listEl = listRef.current;
+    if (!listEl) return { top: 0, height: 0 };
+
+    const pins = listEl.querySelectorAll('.result-card__place-pin');
+    if (pins.length < 2) return { top: 0, height: 0 };
+
+    const listTop = listEl.getBoundingClientRect().top;
+    const firstPinRect = pins[0].getBoundingClientRect();
+    const lastPinRect = pins[pins.length - 1].getBoundingClientRect();
+    const top = firstPinRect.top + firstPinRect.height / 2 - listTop;
+    const bottom = lastPinRect.top + lastPinRect.height / 2 - listTop;
+    return { top, height: Math.max(bottom - top, 0) };
+  }, []);
+
+  // ResizeObserver를 쓰기 때문에 이미지 로딩으로 항목 높이가 바뀌는 등
+  // 화면 표시 중의 자연스러운 리사이즈는 계속 자동으로 반영됨.
+  // (캡처 시 강제로 펼치는 순간의 재계산은 captureCard 안에서 별도로 동기 처리함 - 아래 참고)
   useLayoutEffect(() => {
     const listEl = listRef.current;
     if (!listEl) return;
 
-    const updateLine = () => {
-      const pins = listEl.querySelectorAll('.result-card__place-pin');
-      if (pins.length < 2) {
-        setLineRect({ top: 0, height: 0 });
-        return;
-      }
-      const listTop = listEl.getBoundingClientRect().top;
-      const firstPinRect = pins[0].getBoundingClientRect();
-      const lastPinRect = pins[pins.length - 1].getBoundingClientRect();
-      const top = firstPinRect.top + firstPinRect.height / 2 - listTop;
-      const bottom = lastPinRect.top + lastPinRect.height / 2 - listTop;
-      setLineRect({ top, height: Math.max(bottom - top, 0) });
-    };
+    setLineRect(measureLine());
 
-    updateLine();
-
-    const resizeObserver = new ResizeObserver(updateLine);
+    const resizeObserver = new ResizeObserver(() => setLineRect(measureLine()));
     resizeObserver.observe(listEl);
 
     return () => resizeObserver.disconnect();
-  }, [courseData?.places]);
+  }, [courseData?.places, measureLine]);
 
   if (!courseData) return null; // 리다이렉트 되는 동안 아무것도 그리지 않음
 
@@ -84,34 +89,54 @@ export default function Result() {
 
   // ---------- 이미지 캡처 (스크롤로 잘린 리스트를 캡처 시엔 전체 펼침) ----------
   const captureCard = async () => {
+    const cardEl = cardRef.current;
     const listEl = listRef.current;
     const prevMaxHeight = listEl.style.maxHeight;
     const prevOverflow = listEl.style.overflowY;
 
+    // 캡처 순간엔 고정폭(363px)으로 전환 - 어느 기기에서 저장하든 이미지 크기가 동일하게 나오도록.
+    // (평소 화면 표시는 계속 반응형 - .result-card 기본 규칙 그대로)
+    cardEl.classList.add('is-capturing');
+
     listEl.style.maxHeight = 'none';
     listEl.style.overflowY = 'visible';
 
-    // 스타일 변경이 실제 반영될 때까지 한 프레임 대기
-    // (ResizeObserver가 이 시점에 점선 위치도 같이 재계산해줌)
+    // 폭 고정 + 리스트가 펼쳐지며 레이아웃이 바뀌었으므로, ResizeObserver의 비동기 콜백을
+    // 기다리지 않고 flushSync로 점선 위치를 그 자리에서 즉시 재계산해 DOM에 반영한다.
+    // (안 그러면 이전 레이아웃 기준으로 계산된 점선이 그대로 캡처돼서 어긋나 보임)
+    flushSync(() => {
+      setLineRect(measureLine());
+    });
+
+    // Inter 웹폰트가 완전히 로드되기 전에 캡처하면 html2canvas가 폴백 폰트로 찍어서
+    // 텍스트 기준선(baseline)이 미묘하게 밀려 보일 수 있음 - 로딩 완료까지 대기
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
+    // 위 스타일/상태 변경이 실제 화면에 반영될 때까지 한 프레임 더 대기
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     let canvas;
     try {
-      canvas = await html2canvas(cardRef.current, {
+      canvas = await html2canvas(cardEl, {
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: null, // 투명 배경 - 카드의 border-radius(둥근 모서리)가 그대로 저장되도록
         scale: Math.min(window.devicePixelRatio || 2, 3),
       });
     } catch (e) {
       // 외부 이미지 CORS 문제로 실패하면 화질 저하를 감수하고 재시도
-      canvas = await html2canvas(cardRef.current, {
+      canvas = await html2canvas(cardEl, {
         allowTaint: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: null,
         scale: 2,
       });
     } finally {
+      cardEl.classList.remove('is-capturing');
       listEl.style.maxHeight = prevMaxHeight;
       listEl.style.overflowY = prevOverflow;
+      // 원래 상태(반응형 폭 + 스크롤 상태)로 복귀했으니 점선 위치도 다시 그 기준으로 되돌림
+      setLineRect(measureLine());
     }
 
     return canvas;
@@ -219,7 +244,7 @@ export default function Result() {
             <div className="result-card__tags">
               {tags.map((tag) => (
                 <span key={tag} className="result-card__tag">
-                  {tag}
+                  <span className="result-card__tag-text">{tag}</span>
                 </span>
               ))}
             </div>
@@ -277,8 +302,8 @@ export default function Result() {
         <div className="result-card__watermark">
           <span className="result-card__watermark-label">made with</span>
           <div className="result-card__watermark-brand">
-            <img src={symbolW} size={25} alt="" />
-            <img src={logoW} size={25} alt="TripPing" />
+            <img src={symbolW} alt="" />
+            <img src={logoW} alt="TripPing" />
           </div>
         </div>
       </div>
