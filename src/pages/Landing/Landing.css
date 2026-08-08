@@ -7,7 +7,7 @@
 }
 
 .landing__logo {
-  width: 300px;
+  width: 282px;
   height: auto;
   opacity: 0;
   animation: landing-fade-in 0.8s ease-out forwards;
@@ -15,7 +15,7 @@
 
 .landing__tagline {
   margin-top: 20px;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #ffffff;
   opacity: 0;
