@@ -15,17 +15,18 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #ffffff;
+  color: var(--color-text);
+  background: var(--color-natural);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
 }
 
 .three-select__archive-btn svg {
   width: 20px;
   height: 20px;
-  fill: var(--color-text);
+  fill: none;
 }
 
 .three-select__hero {
@@ -64,7 +65,7 @@
   border-radius: var(--radius-card-outer);
   overflow: hidden;
   background: #ffffff;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
   padding: 0;
   text-align: left;
 }
@@ -105,5 +106,4 @@
   margin-top: 4px;
   font-size: 15px;
   font-weight: 500;
-  opacity: 0.75;
 }

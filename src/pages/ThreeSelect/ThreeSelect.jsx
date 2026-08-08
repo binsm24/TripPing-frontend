@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { BookMarked } from 'lucide-react';
 import MobileLayout from '../../components/MobileLayout';
 import symbol from '../../assets/symbol.png';
 import natureImg from '../../assets/nature.jpg';
@@ -31,10 +32,13 @@ export default function ThreeSelect() {
     <MobileLayout>
       <div className="three-select">
         <div className="three-select__topbar">
-          <button type="button" className="three-select__archive-btn" onClick={handleArchive} aria-label="보관함">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16v3H4V4zm1 5h14v11H5V9zm3 2v2h8v-2H8z" />
-            </svg>
+          <button
+            type="button"
+            className="three-select__archive-btn"
+            onClick={handleArchive}
+            aria-label="보관함"
+          >
+            <BookMarked size={20} />
           </button>
         </div>
 
