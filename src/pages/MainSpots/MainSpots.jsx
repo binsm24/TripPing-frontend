@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -68,17 +68,47 @@ const SPOTS = [
 function MainSpots() {
   const navigate = useNavigate()
 
-  // 상세 화면으로 열려 있는 장소 (null이면 목록 화면)
+  // 상세 화면으로 열려 있는 장소 (null이면 목록 화면). 오직 "관광지명" 클릭으로만 바뀝니다.
   const [openSpotId, setOpenSpotId] = useState(null)
-  // 사용자가 선택(체크)한 장소 - 한 곳만 선택 가능
+  // 사용자가 선택(체크)한 장소 - 한 곳만 선택 가능 (지도 핀/카드 테두리 주황색)
   const [selectedId, setSelectedId] = useState(null)
+  // 카드 몸통 클릭 또는 지도 핀 클릭으로 "지금 보고 있는" 장소
+  // (목록 카드의 회색 제목 배경 + 진한 그림자, 지도 핀 확대에 사용. 선택과는 무관)
+  const [focusedId, setFocusedId] = useState(null)
 
   const openSpot = openSpotId ? SPOTS.find((s) => s.id === openSpotId) : null
   const canSubmit = selectedId !== null
 
+  // 지도에서 핀을 클릭했을 때 목록에서 해당 카드로 스크롤해서 보여주기 위한 ref
+  const cardRefs = useRef({})
+
+  useEffect(() => {
+    // 상세 화면이 아니라 목록 화면이고, 포커스된 카드가 있을 때만 스크롤
+    if (!openSpotId && focusedId && cardRefs.current[focusedId]) {
+      cardRefs.current[focusedId].scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [focusedId, openSpotId])
+
   const handleToggleSelect = (id, e) => {
     e.stopPropagation()
     setSelectedId((prev) => (prev === id ? null : id))
+  }
+
+  // 카드 몸통(제목 제외) 클릭 → 지도에서 위치 확인용 포커스만 줌
+  const handleFocusCard = (id) => {
+    setFocusedId(id)
+  }
+
+  // 관광지명 클릭 → 상세 설명 화면으로 이동
+  const handleOpenDetail = (id, e) => {
+    e.stopPropagation()
+    setOpenSpotId(id)
+  }
+
+  // 지도 핀 클릭 → 상세 화면이 열려있으면 목록으로 돌아가면서, 해당 카드에 포커스
+  const handlePinClick = (id) => {
+    setOpenSpotId(null)
+    setFocusedId(id)
   }
 
   const handleBack = () => {
@@ -113,12 +143,15 @@ function MainSpots() {
           <div className="main-spots__map-placeholder">
             {SPOTS.map((spot) => {
               const isSelected = selectedId === spot.id
-              const isViewing = openSpotId === spot.id
+              const isBig = isSelected || focusedId === spot.id || openSpotId === spot.id
               return (
-                <div
+                <button
                   key={spot.id}
-                  className={`main-spots__pin ${isSelected || isViewing ? 'main-spots__pin--big' : ''}`}
+                  type="button"
+                  className={`main-spots__pin ${isBig ? 'main-spots__pin--big' : ''}`}
                   style={{ top: spot.pin.top, left: spot.pin.left }}
+                  onClick={() => handlePinClick(spot.id)}
+                  aria-label={`${spot.name} 위치`}
                 >
                   <MapPin
                     size={30}
@@ -126,7 +159,7 @@ function MainSpots() {
                     fill={isSelected ? 'var(--color-accent)' : 'var(--color-primary)'}
                     strokeWidth={1.5}
                   />
-                </div>
+                </button>
               )
             })}
           </div>
@@ -151,9 +184,12 @@ function MainSpots() {
               {SPOTS.map((spot) => (
                 <SpotCard
                   key={spot.id}
+                  ref={(el) => (cardRefs.current[spot.id] = el)}
                   spot={spot}
                   selected={selectedId === spot.id}
-                  onClick={() => setOpenSpotId(spot.id)}
+                  focused={focusedId === spot.id}
+                  onFocusCard={() => handleFocusCard(spot.id)}
+                  onOpenDetail={(e) => handleOpenDetail(spot.id, e)}
                   onToggleSelect={(e) => handleToggleSelect(spot.id, e)}
                 />
               ))}
@@ -175,13 +211,28 @@ function MainSpots() {
   )
 }
 
-function SpotCard({ spot, selected, expanded = false, onClick, onToggleSelect }) {
+function SpotCard({
+  spot,
+  selected,
+  focused = false,
+  expanded = false,
+  onFocusCard,
+  onOpenDetail,
+  onToggleSelect,
+  ref,
+}) {
   return (
     <div
-      className={`spot-card ${selected ? 'spot-card--selected' : ''} ${expanded ? 'spot-card--expanded' : ''}`}
-      onClick={onClick}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
+      ref={ref}
+      className={[
+        'spot-card',
+        selected ? 'spot-card--selected' : '',
+        focused ? 'spot-card--focused' : '',
+        expanded ? 'spot-card--expanded' : '',
+      ].join(' ').trim()}
+      onClick={!expanded ? onFocusCard : undefined}
+      role={!expanded ? 'button' : undefined}
+      tabIndex={!expanded ? 0 : undefined}
     >
       <div className="spot-card__top">
         <div className="spot-card__thumb">
@@ -192,7 +243,12 @@ function SpotCard({ spot, selected, expanded = false, onClick, onToggleSelect })
           )}
         </div>
         <div className="spot-card__info">
-          <h3 className="spot-card__title">{spot.name}</h3>
+          <h3
+            className={`spot-card__title ${!expanded ? 'spot-card__title--link' : ''}`}
+            onClick={!expanded ? onOpenDetail : undefined}
+          >
+            {spot.name}
+          </h3>
           <p className={`spot-card__summary ${expanded ? '' : 'spot-card__summary--clamp'}`}>
             {spot.summary}
           </p>
