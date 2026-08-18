@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px 20px 32px;
+  padding: 60px 20px 32px;
   background: linear-gradient(180deg, #ffffff 0%, #ffffff 55%, var(--color-sub) 100%);
 }
 
@@ -131,7 +131,8 @@
   margin-top: 14px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px;
+
 }
 
 .condition__companion-btn {
@@ -207,9 +208,12 @@
   overflow-y: auto;
   list-style: none;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #ffffff;
+  border-radius: var(--radius-card-inner);
+  border: 1px solid #eeeeee;
 }
 
 .condition__region-list li {
@@ -218,11 +222,17 @@
 
 .condition__region-item {
   width: 100%;
-  padding: 9px 4px;
-  border-radius: var(--radius-photo);
-  background: var(--color-ground);
+  padding: 12px 16px;
+  border: none;
+  border-radius: 0;
+  background: #ffffff;
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.condition__region-item:hover {
+  background: var(--color-ground);
 }
 
 .condition__region-item.is-selected {
