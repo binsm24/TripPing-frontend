@@ -10,11 +10,17 @@ import Storage from './pages/storage/storage'
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Result from './pages/result/result';
 import { mockCourseResult } from './pages/result/mockData';
+// 파일 위치에 맞게 경로를 수정해 주세요 (예: ./pages/CourseSelectPage.jsx 인 경우)
+import CourseSelectPage from './pages/expansion/ExpandSelection'
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Storage />} />
+      {/* Home 대신 CourseSelectPage를 루트로 설정하여 바로 확인 */}
+      <Route path="/" element={<CourseSelectPage />} />
+      
+      {/* 주석 처리된 나머지 라우트들 */}
       {/* <Route path="/condition" element={<ConditionInput />} /> */}
       {/* <Route path="/result" element={<Result />} /> */}
       <Route path="/archive" element={<Storage />} />
