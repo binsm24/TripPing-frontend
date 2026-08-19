@@ -1,4 +1,8 @@
 :root {
+  /*safe area*/
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
   /* Colors */
   --color-primary: #007A8C;
   --color-sub: #B7ECF5;
@@ -33,6 +37,7 @@ html, body {
   background-color: var(--color-ground);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* 스크롤은 각 화면 콘텐츠 영역에서만 */
 }
 
 #root {
