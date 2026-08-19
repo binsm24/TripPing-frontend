@@ -147,9 +147,16 @@ export default function ConditionInput() {
 
   const handleSubmit = () => {
     if (!isFormComplete) return;
-    // TODO: 결과 화면 라우트 연결
-    navigate('/result', {
-      state: { category, age, companion, region, extraRequest },
+    // TODO: 실제로는 여기서 관광지 추천 API를 먼저 호출하고, 그 결과를 next.state에 담아
+    // /spots(MainSpots)로 넘겨줘야 함. 지금은 MainSpots가 목업 데이터를 쓰고 있어
+    // 조건 값만 그대로 들고 이동함.
+    navigate('/loading', {
+      state: {
+        next: {
+          path: '/spots',
+          state: { category, age, companion, region, extraRequest },
+        },
+      },
     });
   };
 

@@ -20,7 +20,7 @@ export default function ThreeSelect() {
   const navigate = useNavigate();
 
   const handleArchive = () => {
-    navigate('/archive');
+    navigate('/storage');
   };
 
   const handleSelectCategory = (categoryKey) => {

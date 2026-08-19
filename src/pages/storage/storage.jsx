@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MobileLayout from '../../components/MobileLayout';
 import ArchiveCard from './ArchiveCard';
 import symbolImg from '../../assets/symbolW.png';
@@ -47,6 +48,7 @@ function formatDate(isoDate) {
  *   상세 결과 화면으로 이동하게 됩니다.
  */
 export default function storage({ courses: coursesOverride, onNavigateHome, onSelectCourse }) {
+  const navigate = useNavigate();
   const [fetchedCourses, setFetchedCourses] = useState(MOCK_COURSES);
 
   useEffect(() => {
@@ -88,8 +90,8 @@ export default function storage({ courses: coursesOverride, onNavigateHome, onSe
       onNavigateHome();
       return;
     }
-    // TODO: 홈 화면 구현 완료 후 실제 경로로 연결
-    console.log('[보관함] 홈으로 이동');
+    // home 화면이 없어져서, threeselect(여행지 선택 화면)를 홈처럼 사용
+    navigate('/select');
   };
 
   const handleSelectCourse = (savedCourseId) => {
@@ -97,8 +99,7 @@ export default function storage({ courses: coursesOverride, onNavigateHome, onSe
       onSelectCourse(savedCourseId);
       return;
     }
-    // TODO: 상세 결과 화면 구현 완료 후 GET /api/saved-courses/{savedCourseId} 연결
-    console.log('[보관함] 상세 결과로 이동:', savedCourseId);
+    navigate(`/storage/${savedCourseId}`);
   };
 
   return (

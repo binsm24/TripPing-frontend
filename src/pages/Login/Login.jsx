@@ -12,7 +12,7 @@ export default function Login() {
   };
 
   const handleGuest = () => {
-    navigate('/home');
+    navigate('/select');
   };
 
   return (

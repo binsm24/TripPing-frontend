@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft,
+  ChevronLeft,
   Check,
   MapPin,
   Clock,
@@ -13,6 +13,8 @@ import {
 } from 'lucide-react'
 import MobileLayout from '../../components/MobileLayout'
 import './MainSpots.css'
+// import { createRoot } from 'react-dom/client'
+// import { loadKakaoMap } from '../../components/kakaoMap'
 
 // TODO: 아래는 임시(더미) 데이터입니다.
 // 실제로는 이전 화면(조건 입력 화면)에서 넘어온 사용자 조건을 AI API로 보내면,
@@ -27,6 +29,8 @@ const SPOTS = [
     // TODO: 관광지 썸네일 이미지 경로. 지금은 이미지 파일이 없어서 자리표시자를 씁니다.
     thumbnail: null,
     // 지도 위 핀 위치 (임시 좌표, % 기준). 실제로는 카카오맵 API가 좌표를 받아 표시합니다.
+    // lat: 37.8189,
+    // lng: 126.9020,
     pin: { top: '46%', left: '16%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
@@ -41,6 +45,8 @@ const SPOTS = [
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
+    // lat: 37.8189,
+    // lng: 126.9020,
     pin: { top: '16%', left: '64%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
@@ -55,6 +61,8 @@ const SPOTS = [
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
+    // lat: 37.8189,
+    // lng: 126.9020,
     pin: { top: '64%', left: '66%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
@@ -67,6 +75,9 @@ const SPOTS = [
 
 function MainSpots() {
   const navigate = useNavigate()
+  const location = useLocation()
+  // 이전 화면(조건 입력)에서 로딩을 거쳐 넘어온 데이터 (category, age, companion, region, extraRequest 등)
+  const conditionState = location.state ?? {}
 
   // 상세 화면으로 열려 있는 장소 (null이면 목록 화면). 오직 "관광지명" 클릭으로만 바뀝니다.
   const [openSpotId, setOpenSpotId] = useState(null)
@@ -116,18 +127,28 @@ function MainSpots() {
       setOpenSpotId(null)
       return
     }
-    // /spots로 바로 접속해서 뒤로 갈 히스토리가 없는 경우 홈으로 이동
+    // /spots로 바로 접속해서 뒤로 갈 히스토리가 없는 경우 threeselect로 이동
     if (window.history.state?.idx > 0) {
       navigate(-1)
     } else {
-      navigate('/')
+      navigate('/select')
     }
   }
 
   const handleSubmit = () => {
     if (!canSubmit) return
-    // TODO: 다음 화면(코스 확장 추천 등)으로 이동하는 로직 연결
-    console.log('선택한 관광지:', selectedId)
+    const selectedSpot = SPOTS.find((s) => s.id === selectedId)
+    // TODO: 실제로는 여기서 선택한 메인 관광지 기준 주변 추천(확장 선택) API를 호출하고,
+    // 그 결과를 next.state에 담아 /expansion으로 넘겨줘야 함. 지금은 ExpandSelection이
+    // 목업 데이터를 쓰고 있어 지금까지의 조건/선택 값만 그대로 들고 이동함.
+    navigate('/loading', {
+      state: {
+        next: {
+          path: '/expansion',
+          state: { ...conditionState, mainSpot: selectedSpot },
+        },
+      },
+    })
   }
 
   return (
@@ -165,7 +186,7 @@ function MainSpots() {
           </div>
 
           <button className="main-spots__back-btn" aria-label="뒤로 가기" onClick={handleBack}>
-            <ArrowLeft size={20} />
+            <ChevronLeft size={24} color="var(--color-text)" />
           </button>
         </div>
 

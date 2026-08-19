@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Compass, MapPin } from 'lucide-react';
 import MobileLayout from '../../components/MobileLayout'; // 프로젝트 파일 위치에 맞게 수정해주세요.
 import './ExpandSelection.css';
@@ -53,6 +54,11 @@ const MOCK_PLACES = [
 const CATEGORIES = ['전체', '관광지', '식당', '카페'];
 
 export default function ExpandSelection() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  // 이전 화면(메인 관광지 선택)에서 로딩을 거쳐 넘어온 데이터 (조건 값 + mainSpot 등)
+  const incomingState = location.state ?? {};
+
   const cardRefs = useRef(new Map());
 
   // 1. 선택된 장소 ID 목록 (N/4 개수 카운트 연동)
@@ -99,12 +105,31 @@ export default function ExpandSelection() {
     return place.category === activeCategory;
   });
 
+  // [핵심 기능 3] 코스 만들기 -> 로딩을 거쳐 결과 화면으로 이동
+  const handleCreateCourse = () => {
+    // TODO: 실제로는 여기서 선택된 장소들(selectedIds)로 코스 생성 API(prepareCourseResult 등)를
+    // 호출해서 완성된 result 데이터를 next.state.result에 담아 넘겨야 함.
+    // 지금은 백엔드가 없어서 로딩 화면이 목업 결과로 대체해서 넘겨줌.
+    navigate('/loading', {
+      state: {
+        next: {
+          path: '/result',
+          state: { ...incomingState, selectedPlaceIds: selectedIds },
+        },
+      },
+    });
+  };
+
   return (
     <MobileLayout>
       {/* -------------------- 1. Map Area -------------------- */}
       <div className="map-wrapper">
-        <button className="back-button web-app-btn" aria-label="뒤로가기">
-          <ChevronLeft size={24} color="#6b7280" />
+        <button
+          className="back-button web-app-btn"
+          aria-label="뒤로가기"
+          onClick={() => navigate(-1)}
+        >
+          <ChevronLeft size={24} color="var(--color-text)" />
         </button>
 
         <div className="map-mock-view">
@@ -193,7 +218,7 @@ export default function ExpandSelection() {
                     style={{
                       display: '-webkit-box',
                       WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 3,
+                      WebkitLineClamp: 2,
                     }}
                   >
                     {place.summary}
@@ -217,7 +242,7 @@ export default function ExpandSelection() {
 
         {/* Bottom CTA Button */}
         <div className="cta-wrapper">
-          <button className="cta-button web-app-btn">
+          <button className="cta-button web-app-btn" onClick={handleCreateCourse}>
             코스 만들기 -&gt;
           </button>
         </div>

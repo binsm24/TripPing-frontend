@@ -13,12 +13,13 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
  
-import MobileLayout from '../../components/MobileLayout/MobileLayout';
+import MobileLayout from '../../components/MobileLayout';
 import { getAuthToken } from '../../components/auth';
 import symbolW from '../../assets/symbolW.png'; // 워터마크용 (헤더에는 안 씀)
 import logoW from '../../assets/logoW.png';
+import { mockCourseResult } from '../result/mockData';
  
-import './StorageDetail.css';
+import './detail.css';
  
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY;
@@ -64,8 +65,11 @@ export default function StorageDetail() {
         if (!ignore) setCourseData(data);
       })
       .catch((err) => {
-        console.error('[보관함 상세] 조회 실패:', err.message);
-        if (!ignore) setLoadError(err);
+        // TODO: GET /api/saved-courses/{savedCourseId} 백엔드 연동되면 이 fallback은 제거하고
+        // 위 setLoadError(err)만 남기면 됨. 지금은 API가 없어서 항상 실패하므로,
+        // 화면 확인이 가능하도록 목업 데이터로 대체함.
+        console.warn('[보관함 상세] 조회 실패, 목업 데이터로 대체합니다:', err.message);
+        if (!ignore) setCourseData({ ...mockCourseResult, courseId: savedCourseId });
       });
  
     return () => {

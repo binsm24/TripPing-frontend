@@ -30,12 +30,13 @@
 .condition__back-btn {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: var(--color-ground-up);
+  border-radius: 15px;
+  background: var(--color-natural);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
 }
 
 .condition__back-btn svg {
@@ -64,7 +65,7 @@
   background: #ffffff;
   border-radius: var(--radius-card-outer);
   padding: 20px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
   position: relative;
 }
 
@@ -278,7 +279,7 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
 }
 
 .condition__submit-btn.is-active {

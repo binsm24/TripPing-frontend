@@ -45,7 +45,7 @@ export default function Result() {
   // 필요한 데이터 없이 이 화면으로 바로 들어온 경우 처리 (직접 URL 접근 등)
   useEffect(() => {
     if (!courseData) {
-      navigate('/', { replace: true });
+      navigate('/select', { replace: true });
     }
   }, [courseData, navigate]);
 
@@ -228,7 +228,7 @@ export default function Result() {
         </p>
         <button
           className="result-header__home result-header__box"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/select')}
           aria-label="홈으로"
         >
           <img src={symbolW} alt="" />

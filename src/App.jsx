@@ -1,107 +1,46 @@
-
-import { Routes, Route } from 'react-router-dom'
-
-
-import LoadingScreen from './pages/loading/loading'
-
-export default function App() {
-  return <LoadingScreen userName="김수한무..." />;
-}
-import Storage from './pages/storage/storage'
-
-import Landing from './pages/Landing/Landing'
-// import Home from './pages/Home/Home'
-
-// import Landing from './pages/Landing/Landing'
-// import Login from './pages/Login/Login'
-import ThreeSelect from './pages/ThreeSelect/ThreeSelect'
-
-
-// import Landing from './pages/Landing/Landing'
-// import Login from './pages/Login/Login'
-// import ThreeSelect from './pages/ThreeSelect/ThreeSelect'
-import ConditionInput from './pages/ConditionInput/ConditionInput'
-
-
-import Home from './pages/Home/Home'
-import MainSpots from './pages/MainSpots/MainSpots'
-
-// import 나머지 페이지들...
 import { Routes, Route, Navigate } from 'react-router-dom';
+
+import Landing from './pages/Landing/Landing';
+import Login from './pages/Login/Login';
+import ThreeSelect from './pages/ThreeSelect/ThreeSelect';
+import ConditionInput from './pages/ConditionInput/ConditionInput';
+import LoadingScreen from './pages/loading/loading';
+import MainSpots from './pages/MainSpots/MainSpots';
+import ExpandSelection from './pages/expansion/ExpandSelection';
 import Result from './pages/result/result';
-import { mockCourseResult } from './pages/result/mockData';
-// 파일 위치에 맞게 경로를 수정해 주세요 (예: ./pages/CourseSelectPage.jsx 인 경우)
-import CourseSelectPage from './pages/expansion/ExpandSelection'
+import Storage from './pages/storage/storage';
+import StorageDetail from './pages/storage/detail';
 
-import Login from './pages/Login/Login'
-// import Landing from './pages/Landing/Landing'
-// import Home from './pages/Home/Home'
-
-
+// 화면 연결 순서:
+// landing -> login -> threeselect -> condition input -> loading -> mainspot
+//   -> loading -> expansion -> loading -> result
+// (threeselect 상단 버튼 -> storage)
 function App() {
   return (
     <Routes>
-
-
-
-
-      <Route path="/" element={<Storage />} />
-      {/* Home 대신 CourseSelectPage를 루트로 설정하여 바로 확인 */}
-      <Route path="/" element={<CourseSelectPage />} />
-      
-      {/* 주석 처리된 나머지 라우트들 */}
-
       <Route path="/" element={<Landing />} />
-      {/* <Route path="/home" element={<Home />} /> */}
-
-      {/* <Route path="/" element={<Landing />} /> */}
-      {/* <Route path="/login" element={<Login />} /> */}
+      <Route path="/login" element={<Login />} />
       <Route path="/select" element={<ThreeSelect />} />
-
-=======
-      <Route path="/" element={<Home />} />
-      <Route path="/spots" element={<MainSpots />} />
-
-      {/* <Route path="/condition" element={<ConditionInput />} /> */}
-
-      {/* <Route path="/" element={<Landing />} /> */}
-      {/* <Route path="/login" element={<Login />} /> */}
-      {/* <Route path="/select" element={<ThreeSelect />} /> */}
       <Route path="/condition" element={<ConditionInput />} />
 
-      {/* <Route path="/result" element={<Result />} /> */}
-      <Route path="/archive" element={<Storage />} />
-      {/* <Route path="/" element={<Home />} /> */}
-      {/* <Route path="/condition" element={<ConditionInput />} /> */}
+      {/* 세 구간(condition->spots, spots->expansion, expansion->result)에서
+          모두 이 하나의 로딩 화면을 공유해서 사용합니다.
+          이전 화면이 navigate('/loading', { state: { next: { path, state } } }) 형태로
+          "로딩이 끝나면 어디로, 무슨 데이터를 들고 갈지"를 넘겨줍니다. */}
+      <Route path="/loading" element={<LoadingScreen />} />
+
+      <Route path="/spots" element={<MainSpots />} />
+      <Route path="/expansion" element={<ExpandSelection />} />
       <Route path="/result" element={<Result />} />
-      {/* <Route path="/archive" element={<Archive />} /> */}
 
-      {/* 미리보기 전용 - Home/로딩 화면 붙으면 이 라우트/mockData.js는 삭제 */}
-      <Route
-        path="/result-preview"
-        element={<Navigate to="/result" state={{ result: mockCourseResult }} replace />}
-      />
+      {/* threeselect 상단 보관함 버튼 진입점 */}
+      <Route path="/storage" element={<Storage />} />
+      <Route path="/storage/:savedCourseId" element={<StorageDetail />} />
 
-      {/* 지금은 Home이 없어서, 접속 시 바로 미리보기로 이동 (임시) */}
-      <Route path="/" element={<Navigate to="/result-preview" replace />} />
-
-      <Route path="/" element={<Login />} />
-      {/* <Route path="/" element={<Landing />} /> */}
-      {/* <Route path="/home" element={<Home />} /> */}
-
+      {/* 정의되지 않은 경로는 랜딩으로 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
-
-
-
-
 export default App;
-export default App
-
-
-export default App
-
-export default App
-
