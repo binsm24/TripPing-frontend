@@ -2,8 +2,6 @@
 import { Routes, Route } from 'react-router-dom'
 
 
-
-
 import LoadingScreen from './pages/loading/loading'
 
 export default function App() {
@@ -24,6 +22,10 @@ import ThreeSelect from './pages/ThreeSelect/ThreeSelect'
 // import ThreeSelect from './pages/ThreeSelect/ThreeSelect'
 import ConditionInput from './pages/ConditionInput/ConditionInput'
 
+
+import Home from './pages/Home/Home'
+import MainSpots from './pages/MainSpots/MainSpots'
+
 // import 나머지 페이지들...
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Result from './pages/result/result';
@@ -42,6 +44,7 @@ function App() {
 
 
 
+
       <Route path="/" element={<Storage />} />
       {/* Home 대신 CourseSelectPage를 루트로 설정하여 바로 확인 */}
       <Route path="/" element={<CourseSelectPage />} />
@@ -54,6 +57,10 @@ function App() {
       {/* <Route path="/" element={<Landing />} /> */}
       {/* <Route path="/login" element={<Login />} /> */}
       <Route path="/select" element={<ThreeSelect />} />
+
+=======
+      <Route path="/" element={<Home />} />
+      <Route path="/spots" element={<MainSpots />} />
 
       {/* <Route path="/condition" element={<ConditionInput />} /> */}
 
