@@ -1,6 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom'
 
+
 import LoadingScreen from './pages/loading/loading'
 
 export default function App() {
@@ -18,9 +19,15 @@ import { mockCourseResult } from './pages/result/mockData';
 // 파일 위치에 맞게 경로를 수정해 주세요 (예: ./pages/CourseSelectPage.jsx 인 경우)
 import CourseSelectPage from './pages/expansion/ExpandSelection'
 
+import Login from './pages/Login/Login'
+// import Landing from './pages/Landing/Landing'
+// import Home from './pages/Home/Home'
+
+
 function App() {
   return (
     <Routes>
+
 
       <Route path="/" element={<Storage />} />
       {/* Home 대신 CourseSelectPage를 루트로 설정하여 바로 확인 */}
@@ -47,11 +54,19 @@ function App() {
 
       {/* 지금은 Home이 없어서, 접속 시 바로 미리보기로 이동 (임시) */}
       <Route path="/" element={<Navigate to="/result-preview" replace />} />
+
+      <Route path="/" element={<Login />} />
+      {/* <Route path="/" element={<Landing />} /> */}
+      {/* <Route path="/home" element={<Home />} /> */}
+
     </Routes>
   );
 }
 
 
+
 export default App;
 export default App
 
+
+export default App
