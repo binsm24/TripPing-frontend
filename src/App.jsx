@@ -1,11 +1,16 @@
 
 import { Routes, Route } from 'react-router-dom'
+
 import LoadingScreen from './pages/loading/loading'
 
 export default function App() {
   return <LoadingScreen userName="김수한무..." />;
 }
 import Storage from './pages/storage/storage'
+
+import Landing from './pages/Landing/Landing'
+// import Home from './pages/Home/Home'
+
 // import 나머지 페이지들...
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Result from './pages/result/result';
@@ -16,11 +21,16 @@ import CourseSelectPage from './pages/expansion/ExpandSelection'
 function App() {
   return (
     <Routes>
+
       <Route path="/" element={<Storage />} />
       {/* Home 대신 CourseSelectPage를 루트로 설정하여 바로 확인 */}
       <Route path="/" element={<CourseSelectPage />} />
       
       {/* 주석 처리된 나머지 라우트들 */}
+
+      <Route path="/" element={<Landing />} />
+      {/* <Route path="/home" element={<Home />} /> */}
+
       {/* <Route path="/condition" element={<ConditionInput />} /> */}
       {/* <Route path="/result" element={<Result />} /> */}
       <Route path="/archive" element={<Storage />} />
@@ -41,4 +51,7 @@ function App() {
   );
 }
 
+
 export default App;
+export default App
+
