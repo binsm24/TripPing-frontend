@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 
 
 
+
 import LoadingScreen from './pages/loading/loading'
 
 export default function App() {
@@ -16,6 +17,12 @@ import Landing from './pages/Landing/Landing'
 // import Landing from './pages/Landing/Landing'
 // import Login from './pages/Login/Login'
 import ThreeSelect from './pages/ThreeSelect/ThreeSelect'
+
+
+// import Landing from './pages/Landing/Landing'
+// import Login from './pages/Login/Login'
+// import ThreeSelect from './pages/ThreeSelect/ThreeSelect'
+import ConditionInput from './pages/ConditionInput/ConditionInput'
 
 // import 나머지 페이지들...
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -49,6 +56,12 @@ function App() {
       <Route path="/select" element={<ThreeSelect />} />
 
       {/* <Route path="/condition" element={<ConditionInput />} /> */}
+
+      {/* <Route path="/" element={<Landing />} /> */}
+      {/* <Route path="/login" element={<Login />} /> */}
+      {/* <Route path="/select" element={<ThreeSelect />} /> */}
+      <Route path="/condition" element={<ConditionInput />} />
+
       {/* <Route path="/result" element={<Result />} /> */}
       <Route path="/archive" element={<Storage />} />
       {/* <Route path="/" element={<Home />} /> */}
@@ -76,10 +89,12 @@ function App() {
 
 
 
+
 export default App;
 export default App
 
 
 export default App
 
+export default App
 
