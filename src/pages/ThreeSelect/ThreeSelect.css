@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 
 .three-select__archive-btn svg {
@@ -65,7 +65,7 @@
   border-radius: var(--radius-card-outer);
   overflow: hidden;
   background: #ffffff;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
   padding: 0;
   text-align: left;
 }

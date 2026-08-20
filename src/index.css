@@ -13,6 +13,9 @@
   --color-natural: #DFE3E5;
   --color-kakao: #FEE500;
 
+  /* Shadow */
+  --shadow: 2px 2px 7px rgba(0, 0, 0, 0.25);
+
   /* Typography */
   --font-family: 'Inter', sans-serif;
 

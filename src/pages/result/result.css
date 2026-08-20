@@ -12,7 +12,7 @@
   height: 42px;
   border: none;
   border-radius: var(--radius-card-inner);
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +57,7 @@
   padding: 14px 6px;
   border-radius: 20px; /* outer card token */
   background: linear-gradient(180deg, var(--color-primary) 60%, var(--color-sub) 100%);
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 
 /* 이미지 저장(html2canvas) 캡처 순간에만 붙는 클래스.
@@ -307,7 +307,7 @@
   font-size: 18px;
   font-weight: 600;
   font-family: inherit;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,7 +319,7 @@
   color: #ffffff;
   font-size: 18px;
   font-weight: 600;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 
 .result-actions__save:disabled {

@@ -59,14 +59,15 @@
   left: 16px;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 15px;
   border: none;
-  background: #FFFFFF;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-natural);
+  box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3;
+  z-index: 10;
+  cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
@@ -80,29 +81,41 @@
 .main-spots__sheet {
   flex: 1;
   min-height: 0;
-  background: var(--color-ground);
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    var(--color-ground, #f5f7f8) 70%,
+    var(--color-sub, #b7ecf5) 100%
+  );
   border-radius: var(--radius-card-outer) var(--radius-card-outer) 0 0;
   margin-top: -20px;
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible; /* 그림자가 잘리지 않도록 */
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .main-spots__list,
 .main-spots__detail-wrap {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 0 8px;
+  padding: 25px 0 120px; /* 하단은 떠 있는 CTA 버튼에 가려지지 않도록 여유 확보 */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
 }
 
-.main-spots__footer {
-  padding: 12px 20px 26px;
-  background: var(--color-ground);
+/* 하단 CTA 영역: ExpandSelection의 .cta-wrapper와 동일하게 리스트 위에 떠 있는 그라데이션 페이드 */
+.main-spots__cta-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 25px 20px 25px;
+  z-index: 10;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-sub, #b7ecf5) 60%);
 }
 
 .main-spots__submit-btn {
@@ -110,16 +123,20 @@
   height: 48px;
   border: none;
   border-radius: 15px;
-  background: var(--color-natural);
+  background-color: var(--color-natural);
   color: #FFFFFF;
+  box-shadow: var(--shadow);
   font-size: 18px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .main-spots__submit-btn:not(:disabled) {
-  background: var(--color-accent);
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  background-color: var(--color-accent);
 }
 
 .main-spots__submit-btn:not(:disabled):active {
@@ -133,12 +150,12 @@
   position: relative;
   width: 360px;
   box-sizing: border-box;
-  border: 1.5px solid transparent;
+  border: 2px solid transparent;
   border-radius: var(--radius-card-outer);
   padding: 14px;
   cursor: pointer;
   background: #FFFFFF;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 

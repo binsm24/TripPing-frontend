@@ -2,7 +2,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   padding: 60px 20px 32px;
   background: linear-gradient(180deg, #ffffff 0%, #ffffff 55%, var(--color-sub) 100%);
 }
@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 
 .condition__back-btn svg {
@@ -65,7 +65,7 @@
   background: #ffffff;
   border-radius: var(--radius-card-outer);
   padding: 20px;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
   position: relative;
 }
 
@@ -105,7 +105,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
-  background: var(--color-ground);
+  background: var(--color-ground-up);
   border-radius: var(--radius-card-inner);
   padding: 10px 16px;
   min-width: 96px;
@@ -142,7 +142,7 @@
   gap: 6px;
   padding: 10px 16px;
   border-radius: 999px;
-  background: var(--color-ground);
+  background: var(--color-ground-up);
   color: var(--color-text);
   font-size: 14px;
   font-weight: 600;
@@ -164,7 +164,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--color-ground);
+  background: var(--color-ground-up);
   border-radius: var(--radius-card-inner);
   padding: 12px 16px;
 }
@@ -247,7 +247,7 @@
   min-height: 120px;
   border: none;
   border-radius: var(--radius-card-inner);
-  background: var(--color-ground);
+  background: var(--color-ground-up);
   padding: 14px;
   font-size: 13px;
   font-family: inherit;
@@ -279,7 +279,7 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 
 .condition__submit-btn.is-active {

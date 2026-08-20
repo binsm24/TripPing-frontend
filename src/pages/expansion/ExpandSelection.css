@@ -60,7 +60,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
   cursor: pointer;
 }
 
@@ -198,9 +198,7 @@
   border-radius: var(--radius-card-inner);
   background-color: #ffffff;
   border: none;
-  
-  /* 피그마 그림자 스펙 적용: X2 Y2 흐림7 스프레드0 000000 25% */
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4); 
+  box-shadow: var(--shadow); 
   
   cursor: pointer;
   
@@ -271,6 +269,6 @@
   font-size: 18px; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
   border: none;
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
   cursor: pointer;
 }

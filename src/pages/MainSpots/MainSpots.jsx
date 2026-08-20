@@ -217,15 +217,16 @@ function MainSpots() {
             </div>
           )}
 
-          <div className="main-spots__footer">
-            <button
-              className="main-spots__submit-btn"
-              disabled={!canSubmit}
-              onClick={handleSubmit}
-            >
-              선택 완료 →
-            </button>
-          </div>
+        </div>
+
+        <div className="main-spots__cta-wrapper">
+          <button
+            className="main-spots__submit-btn"
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+          >
+            선택 완료 →
+          </button>
         </div>
       </div>
     </MobileLayout>
