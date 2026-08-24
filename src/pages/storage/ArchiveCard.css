@@ -8,8 +8,8 @@
   box-sizing: border-box;
   background: #ffffff;
   border: none;
-  border-radius: 15px; /* 피그마 스펙: 모서리 반경 15 */
-  box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4); /* 피그마 스펙: X2 Y2 흐림7 스프레드0 000000 25% */
+  border-radius: 15px;
+  box-shadow: var(--shadow);
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family);
@@ -19,7 +19,7 @@
   flex-shrink: 0;
   width: 114px;
   height: 67px;
-  border-radius: 8px; /* 디자인 시스템: 사진 8px */
+  border-radius: 8px;
   object-fit: cover;
   background: var(--color-ground-up);
 }
