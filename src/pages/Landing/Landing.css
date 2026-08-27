@@ -7,7 +7,7 @@
 }
 
 .landing__logo {
-  width: 282px;
+  width: min(282px, 70%);
   height: auto;
   opacity: 0;
   animation: landing-fade-in 0.8s ease-out forwards;

@@ -82,7 +82,7 @@
 /* 핀 스타일 */
 .mock-pin {
   position: absolute;
-  transform: translate(-50%, -100%); /*핀의 뾰족한 부분을 좌표에 맞추기*/
+  transform: translate(-50%, -100%); /* 핀의 뾰족한 부분을 좌표에 맞추기 */
   transition: all 0.2s ease;
   background: none; border: none; padding: 0; cursor: pointer;
 }
@@ -123,16 +123,16 @@
   display: flex;
   flex-direction: column;
   
-  /* 중요: 그림자 잘림 해결을 위해 overflow: hidden 제거 */
+  /* 중요: 그림자 잘림 해결을 위해 overflow: visible */
   overflow: visible; 
 
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08); /* 부드러운 그림자 */
 }
 
 .sheet-header {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-shrink: 0;
-  padding: 20px 25px 0 25px; /* 좌우 25px 패딩 적용 */
+  padding: 16px 16px 0 16px; /* 요청사항: 상/좌/우 패딩 16px 적용 */
 }
 
 .main-place-tag {
@@ -153,7 +153,7 @@
 
 .category-group {
   display: flex;
-  gap: 8px; /* 간격 살짝 좁힘 */
+  gap: 8px;
   padding-bottom: 4px;
 }
 
@@ -164,33 +164,36 @@
   background-color: var(--color-natural);
   color: var(--color-text);
   border: none; cursor: pointer;
+  white-space: nowrap;
 }
 .chip.active { background-color: var(--color-primary); color: #ffffff; }
 
-.count-badge { font-size: 13px; color: var(--color-text); font-weight: 400; }
+.count-badge { font-size: 13px; color: var(--color-text); font-weight: 400; flex-shrink: 0; }
 
 /* ------------------------------------------------------------ */
 
-/* 3. Card List (이 부분만 스크롤) */
+/* 3. Card List (이 부분만 하단 버튼 뒤쪽으로 스크롤) */
 .card-list {
   flex: 1; /* 남은 공간 전체 */
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   
-  /* 좌우 25px 패딩 적용 & 하단 버튼 여백 */
-  padding: 8px 25px 120px 25px; 
+  /* 요청사항: 좌우 패딩 16px & 하단 고정 버튼에 가려지지 않도록 하단 패딩 100px 확보 */
+  padding: 8px 16px 100px 16px; 
   
-  /* 그림자 표현을 위해 overflow-y 활성화 */
+  /* 그림자 표현 및 스크롤 활성화 */
   overflow-y: auto; 
 }
 
-/* 카드 스타일 (그림자 강조) */
+/* 관광지 카드 스타일 (고정 높이 적용) */
 .place-card {
   position: relative;
-  display: flex; align-items: flex-start; gap: 12px;
-  width: 360px;
-  height: 100px;
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+  width: 100%;
+  height: 110px; /* 카드 높이 고정 */
   flex-shrink: 0;
   box-sizing: border-box;
   overflow: hidden;
@@ -213,24 +216,26 @@
 }
 
 .card-thumb {
-  width: 72px; height: 72px;
+  width: 86px; 
+  height: 86px;
   border-radius: var(--radius-photo);
-  object-fit: cover; flex-shrink: 0;
+  object-fit: cover; 
+  flex-shrink: 0;
 }
 
 .card-info { flex: 1; min-width: 0; padding-right: 28px; }
 
 .card-title-badge {
-  display: inline-block; padding: 3px 6px; margin-left: -6px; margin-top: -2px;
+  display: inline-block; padding: 2px 6px; margin-left: -6px; margin-top: -2px;
   border-radius: 4px; background-color: transparent;
 }
 .card-title-badge.active { background-color: var(--color-natural); }
 
 .card-title { font-size: 15px; font-weight: 700; color: var(--color-primary); margin: 0; line-height: 1.2; }
 
-/* 3줄 말줄임 */
+/* 2줄 말줄임 */
 .card-summary {
-  font-size: 13px; color: var(--color-text); line-height: 1.4; margin-top: 3px;
+  font-size: 13px; color: var(--color-text); line-height: 1.35; margin-top: 4px;
   overflow: hidden; text-overflow: ellipsis; word-break: break-all;
 }
 
@@ -252,12 +257,13 @@
   left: 0;
   right: 0;
   
-  /* 좌우 25px 패딩 적용 */
-  padding: 16px 25px 20px 25px; 
+  /* 요청사항: 좌우 패딩 16px 및 상하 패딩 조정 */
+  padding: 12px 16px 16px 16px; 
   
   z-index: 10;
   /* 하단 그라데이션 오버레이 */
   background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-sub, #b7ecf5) 60%);
+  pointer-events: auto;
 }
 
 .cta-button {

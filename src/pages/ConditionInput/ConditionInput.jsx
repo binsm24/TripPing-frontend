@@ -147,9 +147,6 @@ export default function ConditionInput() {
 
   const handleSubmit = () => {
     if (!isFormComplete) return;
-    // TODO: 실제로는 여기서 관광지 추천 API를 먼저 호출하고, 그 결과를 next.state에 담아
-    // /spots(MainSpots)로 넘겨줘야 함. 지금은 MainSpots가 목업 데이터를 쓰고 있어
-    // 조건 값만 그대로 들고 이동함.
     navigate('/loading', {
       state: {
         next: {
@@ -163,128 +160,134 @@ export default function ConditionInput() {
   return (
     <MobileLayout>
       <div className="condition">
-        <div className="condition__topbar">
-          <button type="button" className="condition__back-btn" onClick={handleBack} aria-label="뒤로 가기">
-            <svg viewBox="0 0 24 24">
-              <path d="M15 5 8 12l7 7" />
-            </svg>
-          </button>
-          <span className="condition__category-badge">
-            {categoryLabel} <span>선택</span>
-          </span>
-        </div>
-
-        <section className="condition__card condition__age-card">
-          <label className="condition__label" htmlFor="age-input">
-            <svg viewBox="0 0 24 24" className="condition__label-icon">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
-            </svg>
-            유진 님의 나이
-          </label>
-          <div className="condition__age-field">
-            <input
-              id="age-input"
-              type="text"
-              inputMode="numeric"
-              value={age}
-              onChange={handleAgeChange}
-              className="condition__age-input"
-            />
-            <span className="condition__age-suffix">세</span>
-          </div>
-        </section>
-
-        <section className="condition__card">
-          <p className="condition__label">
-            <svg viewBox="0 0 24 24" className="condition__label-icon">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" />
-            </svg>
-            동행자 유형
-          </p>
-          <div className="condition__companion-grid">
-            {COMPANION_TYPES.map((type) => (
-              <button
-                key={type.key}
-                type="button"
-                className={`condition__companion-btn ${companion === type.key ? 'is-selected' : ''}`}
-                onClick={() => setCompanion(type.key)}
-              >
-                <span className="condition__companion-icon">{type.icon}</span>
-                {type.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="condition__card">
-          <label className="condition__label" htmlFor="region-search">
-            <svg viewBox="0 0 24 24" className="condition__label-icon">
-              <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z" />
-              <circle cx="12" cy="10" r="2.4" />
-            </svg>
-            선호 지역
-          </label>
-          <div className="condition__region-field">
-            <svg viewBox="0 0 24 24" className="condition__region-search-icon">
-              <circle cx="10.5" cy="10.5" r="6.5" />
-              <path d="M20 20l-4.5-4.5" />
-            </svg>
-            <span id="region-search" className="condition__region-value">{region}</span>
-            <button
-              type="button"
-              className={`condition__region-toggle ${isRegionOpen ? 'is-open' : ''}`}
-              onClick={() => setIsRegionOpen((prev) => !prev)}
-              aria-label="지역 목록 열기"
-            >
+        {/* 스크롤 가능한 본문 컨텐츠 */}
+        <div className="condition__content web-app-scroll-y">
+          <div className="condition__topbar">
+            <button type="button" className="condition__back-btn web-app-btn" onClick={handleBack} aria-label="뒤로 가기">
               <svg viewBox="0 0 24 24">
-                <path d="M6 9l6 6 6-6" />
+                <path d="M15 5 8 12l7 7" />
               </svg>
             </button>
+            <span className="condition__category-badge">
+              {categoryLabel} <span>선택</span>
+            </span>
           </div>
-          {isRegionOpen && (
-            <ul className="condition__region-list">
-              {REGIONS.map((city) => (
-                <li key={city}>
-                  <button
-                    type="button"
-                    className={`condition__region-item ${region === city ? 'is-selected' : ''}`}
-                    onClick={() => handleSelectRegion(city)}
-                  >
-                    {city}
-                  </button>
-                </li>
+
+          <section className="condition__card">
+            <label className="condition__label" htmlFor="age-input">
+              <svg viewBox="0 0 24 24" className="condition__label-icon">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+              </svg>
+              유진 님의 나이
+            </label>
+            <div className="condition__age-field">
+              <input
+                id="age-input"
+                type="text"
+                inputMode="numeric"
+                value={age}
+                onChange={handleAgeChange}
+                className="condition__age-input"
+              />
+              <span className="condition__age-suffix">세</span>
+            </div>
+          </section>
+
+          <section className="condition__card">
+            <p className="condition__label">
+              <svg viewBox="0 0 24 24" className="condition__label-icon">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" />
+              </svg>
+              동행자 유형
+            </p>
+            <div className="condition__companion-grid">
+              {COMPANION_TYPES.map((type) => (
+                <button
+                  key={type.key}
+                  type="button"
+                  className={`condition__companion-btn web-app-btn ${companion === type.key ? 'is-selected' : ''}`}
+                  onClick={() => setCompanion(type.key)}
+                >
+                  <span className="condition__companion-icon">{type.icon}</span>
+                  {type.label}
+                </button>
               ))}
-            </ul>
-          )}
-        </section>
+            </div>
+          </section>
 
-        <section className="condition__card">
-          <p className="condition__label">
-            <span className="condition__plus-icon">+</span>
-            추가 요구 사항
-          </p>
-          <textarea
-            className="condition__textarea"
-            maxLength={MAX_REQUEST_LENGTH}
-            placeholder={'예시:\n· 맛집 위주로\n· 걷기 싫어요\n· 실내 활동 선호\n· ...'}
-            value={extraRequest}
-            onChange={(e) => setExtraRequest(e.target.value)}
-          />
-          <span className="condition__textarea-count">
-            {extraRequest.length}/{MAX_REQUEST_LENGTH}
-          </span>
-        </section>
+          <section className="condition__card">
+            <label className="condition__label" htmlFor="region-search">
+              <svg viewBox="0 0 24 24" className="condition__label-icon">
+                <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z" />
+                <circle cx="12" cy="10" r="2.4" />
+              </svg>
+              선호 지역
+            </label>
+            <div className="condition__region-field">
+              <svg viewBox="0 0 24 24" className="condition__region-search-icon">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="M20 20l-4.5-4.5" />
+              </svg>
+              <span id="region-search" className="condition__region-value">{region}</span>
+              <button
+                type="button"
+                className={`condition__region-toggle ${isRegionOpen ? 'is-open' : ''}`}
+                onClick={() => setIsRegionOpen((prev) => !prev)}
+                aria-label="지역 목록 열기"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+            </div>
+            {isRegionOpen && (
+              <ul className="condition__region-list">
+                {REGIONS.map((city) => (
+                  <li key={city}>
+                    <button
+                      type="button"
+                      className={`condition__region-item ${region === city ? 'is-selected' : ''}`}
+                      onClick={() => handleSelectRegion(city)}
+                    >
+                      {city}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-        <button
-          type="button"
-          className={`condition__submit-btn ${isFormComplete ? 'is-active' : ''}`}
-          disabled={!isFormComplete}
-          onClick={handleSubmit}
-        >
-          여행지 추천 받기 →
-        </button>
+          <section className="condition__card">
+            <p className="condition__label">
+              <span className="condition__plus-icon">+</span>
+              추가 요구 사항
+            </p>
+            <textarea
+              className="condition__textarea"
+              maxLength={MAX_REQUEST_LENGTH}
+              placeholder={'예시:\n· 맛집 위주로\n· 걷기 싫어요\n· 실내 활동 선호\n· ...'}
+              value={extraRequest}
+              onChange={(e) => setExtraRequest(e.target.value)}
+            />
+            <span className="condition__textarea-count">
+              {extraRequest.length}/{MAX_REQUEST_LENGTH}
+            </span>
+          </section>
+        </div>
+
+        {/* 바텀시트처럼 떠서 내용을 아래에서 가리는 고정 CTA 버튼 영역 */}
+        <div className="condition__cta-wrapper">
+          <button
+            type="button"
+            className={`condition__submit-btn web-app-btn ${isFormComplete ? 'is-active' : ''}`}
+            disabled={!isFormComplete}
+            onClick={handleSubmit}
+          >
+            여행지 추천 받기 →
+          </button>
+        </div>
       </div>
     </MobileLayout>
   );

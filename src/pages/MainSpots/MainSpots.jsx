@@ -13,24 +13,14 @@ import {
 } from 'lucide-react'
 import MobileLayout from '../../components/MobileLayout'
 import './MainSpots.css'
-// import { createRoot } from 'react-dom/client'
-// import { loadKakaoMap } from '../../components/kakaoMap'
 
-// TODO: 아래는 임시(더미) 데이터입니다.
-// 실제로는 이전 화면(조건 입력 화면)에서 넘어온 사용자 조건을 AI API로 보내면,
-// AI가 경기도 내 관광지 중 3곳을 추천해서 이 형태의 데이터로 내려줍니다.
-// 백엔드 연동 시 이 배열을 API 응답으로 교체하면 됩니다.
 const SPOTS = [
   {
     id: 'majang-lake-1',
     name: '파주 마장호수',
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
-    // TODO: 관광지 썸네일 이미지 경로. 지금은 이미지 파일이 없어서 자리표시자를 씁니다.
     thumbnail: null,
-    // 지도 위 핀 위치 (임시 좌표, % 기준). 실제로는 카카오맵 API가 좌표를 받아 표시합니다.
-    // lat: 37.8189,
-    // lng: 126.9020,
     pin: { top: '46%', left: '16%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
@@ -41,12 +31,10 @@ const SPOTS = [
   },
   {
     id: 'majang-lake-2',
-    name: '파주 마장호수',
+    name: '파주 마장호수 2호점',
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
-    // lat: 37.8189,
-    // lng: 126.9020,
     pin: { top: '16%', left: '64%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
@@ -57,12 +45,10 @@ const SPOTS = [
   },
   {
     id: 'majang-lake-3',
-    name: '파주 마장호수',
+    name: '파주 마장호수 3호점',
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
-    // lat: 37.8189,
-    // lng: 126.9020,
     pin: { top: '64%', left: '66%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
@@ -76,25 +62,18 @@ const SPOTS = [
 function MainSpots() {
   const navigate = useNavigate()
   const location = useLocation()
-  // 이전 화면(조건 입력)에서 로딩을 거쳐 넘어온 데이터 (category, age, companion, region, extraRequest 등)
   const conditionState = location.state ?? {}
 
-  // 상세 화면으로 열려 있는 장소 (null이면 목록 화면). 오직 "관광지명" 클릭으로만 바뀝니다.
   const [openSpotId, setOpenSpotId] = useState(null)
-  // 사용자가 선택(체크)한 장소 - 한 곳만 선택 가능 (지도 핀/카드 테두리 주황색)
   const [selectedId, setSelectedId] = useState(null)
-  // 카드 몸통 클릭 또는 지도 핀 클릭으로 "지금 보고 있는" 장소
-  // (목록 카드의 회색 제목 배경 + 진한 그림자, 지도 핀 확대에 사용. 선택과는 무관)
   const [focusedId, setFocusedId] = useState(null)
 
   const openSpot = openSpotId ? SPOTS.find((s) => s.id === openSpotId) : null
   const canSubmit = selectedId !== null
 
-  // 지도에서 핀을 클릭했을 때 목록에서 해당 카드로 스크롤해서 보여주기 위한 ref
   const cardRefs = useRef({})
 
   useEffect(() => {
-    // 상세 화면이 아니라 목록 화면이고, 포커스된 카드가 있을 때만 스크롤
     if (!openSpotId && focusedId && cardRefs.current[focusedId]) {
       cardRefs.current[focusedId].scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
@@ -105,18 +84,15 @@ function MainSpots() {
     setSelectedId((prev) => (prev === id ? null : id))
   }
 
-  // 카드 몸통(제목 제외) 클릭 → 지도에서 위치 확인용 포커스만 줌
   const handleFocusCard = (id) => {
     setFocusedId(id)
   }
 
-  // 관광지명 클릭 → 상세 설명 화면으로 이동
   const handleOpenDetail = (id, e) => {
     e.stopPropagation()
     setOpenSpotId(id)
   }
 
-  // 지도 핀 클릭 → 상세 화면이 열려있으면 목록으로 돌아가면서, 해당 카드에 포커스
   const handlePinClick = (id) => {
     setOpenSpotId(null)
     setFocusedId(id)
@@ -127,7 +103,6 @@ function MainSpots() {
       setOpenSpotId(null)
       return
     }
-    // /spots로 바로 접속해서 뒤로 갈 히스토리가 없는 경우 threeselect로 이동
     if (window.history.state?.idx > 0) {
       navigate(-1)
     } else {
@@ -138,9 +113,6 @@ function MainSpots() {
   const handleSubmit = () => {
     if (!canSubmit) return
     const selectedSpot = SPOTS.find((s) => s.id === selectedId)
-    // TODO: 실제로는 여기서 선택한 메인 관광지 기준 주변 추천(확장 선택) API를 호출하고,
-    // 그 결과를 next.state에 담아 /expansion으로 넘겨줘야 함. 지금은 ExpandSelection이
-    // 목업 데이터를 쓰고 있어 지금까지의 조건/선택 값만 그대로 들고 이동함.
     navigate('/loading', {
       state: {
         next: {
@@ -155,12 +127,6 @@ function MainSpots() {
     <MobileLayout>
       <div className="main-spots">
         <div className="main-spots__map">
-          {/*
-            TODO: 이 영역을 카카오맵 SDK 컴포넌트로 교체하세요.
-            지금은 지도 없이 배경 + 핀만 흉내낸 자리표시자(placeholder)입니다.
-            핀 좌표(pin.top/left)는 실제로는 관광지의 위경도를 지도 컴포넌트가
-            화면 좌표로 변환해서 그려줍니다.
-          */}
           <div className="main-spots__map-placeholder">
             {SPOTS.map((spot) => {
               const isSelected = selectedId === spot.id
@@ -217,16 +183,16 @@ function MainSpots() {
             </div>
           )}
 
-        </div>
-
-        <div className="main-spots__cta-wrapper">
-          <button
-            className="main-spots__submit-btn"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-          >
-            선택 완료 →
-          </button>
+          {/* Floating CTA 영역 */}
+          <div className="main-spots__cta-wrapper">
+            <button
+              className="main-spots__submit-btn"
+              disabled={!canSubmit}
+              onClick={handleSubmit}
+            >
+              선택 완료 →
+            </button>
+          </div>
         </div>
       </div>
     </MobileLayout>

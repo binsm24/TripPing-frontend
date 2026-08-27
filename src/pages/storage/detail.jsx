@@ -268,9 +268,14 @@ export default function StorageDetail() {
         </div>
  
         <div className="archive-detail-card__inner">
-          <div className="archive-detail-card__map">
-            <img src={courseData.mapImageUrl} alt="코스 지도" crossOrigin="anonymous" />
-          </div>
+          {/* html2canvas가 <img object-fit:cover>를 원본 크기 그대로 캡처하는 문제 방지 위해
+              background-image + background-size:cover 사용 (result.jsx와 동일 이유) */}
+          <div
+            className="archive-detail-card__map"
+            role="img"
+            aria-label="코스 지도"
+            style={courseData.mapImageUrl ? { backgroundImage: `url("${courseData.mapImageUrl}")` } : undefined}
+          />
  
           <ul className="archive-detail-card__list" ref={listRef}>
             {placeCount > 1 && (
@@ -292,7 +297,12 @@ export default function StorageDetail() {
                       fill={isMain ? 'none' : 'var(--color-accent, #ff9f5a)'}
                     />
                   </span>
-                  <img src={place.imageUrl} alt={place.name} crossOrigin="anonymous" />
+                  <div
+                    className="archive-detail-card__place-thumb"
+                    role="img"
+                    aria-label={place.name}
+                    style={place.imageUrl ? { backgroundImage: `url("${place.imageUrl}")` } : undefined}
+                  />
                   <div>
                     <span className="archive-detail-card__place-name">{place.name}</span>
                     {place.description && (

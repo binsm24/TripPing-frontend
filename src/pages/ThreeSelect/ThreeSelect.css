@@ -2,7 +2,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px 20px 32px;
+  padding: 16px 16px 32px;
   background: linear-gradient(180deg, #ffffff 0%, #ffffff 50%, var(--color-sub) 100%);
 }
 
@@ -14,7 +14,7 @@
 .three-select__archive-btn {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 15px;
   color: var(--color-text);
   background: var(--color-natural);
   display: flex;
@@ -33,18 +33,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 20px 0 32px;
+  margin: 20px 0 28px;
 }
 
 .three-select__symbol {
-  width: 80px;
-  height: 80px;
+  width: 75px;
+  height: 82px;
   margin-bottom: 30px;
 }
 
 .three-select__greeting {
-  font-size: 30px;
-  font-weight: 550;
+  font-size: 24px;
+  font-weight: 500;
   color: var(--color-text);
   text-align: center;
   line-height: 1.5;
@@ -54,14 +54,14 @@
 .three-select__cards {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 25px;
   margin-top: 30px;
 }
 
 .select-card {
   position: relative;
   width: 100%;
-  height: 130px;
+  height: 120px;
   border-radius: var(--radius-card-outer);
   overflow: hidden;
   background: #ffffff;
@@ -99,7 +99,7 @@
 
 .select-card__title {
   font-size: 25px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .select-card__subtitle {

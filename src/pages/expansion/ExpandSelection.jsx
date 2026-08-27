@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Compass, MapPin } from 'lucide-react';
-import MobileLayout from '../../components/MobileLayout'; // 프로젝트 파일 위치에 맞게 수정해주세요.
+import MobileLayout from '../../components/MobileLayout';
 import './ExpandSelection.css';
 
 // MOCK DATA (추가 추천 관광지 목록)
@@ -56,7 +56,6 @@ const CATEGORIES = ['전체', '관광지', '식당', '카페'];
 export default function ExpandSelection() {
   const navigate = useNavigate();
   const location = useLocation();
-  // 이전 화면(메인 관광지 선택)에서 로딩을 거쳐 넘어온 데이터 (조건 값 + mainSpot 등)
   const incomingState = location.state ?? {};
 
   const cardRefs = useRef(new Map());
@@ -68,18 +67,16 @@ export default function ExpandSelection() {
   // 3. 카테고리 필터 상태
   const [activeCategory, setActiveCategory] = useState('전체');
 
-  // [핵심 기능 1] 우상단 원형 체크 표시 토글 (선택/해제 및 4개 제한)
+  // [핵심 기능 1] 우상단 원형 체크 표시 토글
   const handleToggleCheck = (e, id) => {
-    e.stopPropagation(); // 카드 본체 클릭 이벤트 방지
+    e.stopPropagation();
 
     setSelectedIds((prevSelected) => {
       const isAlreadySelected = prevSelected.includes(id);
 
       if (isAlreadySelected) {
-        // 이미 선택된 경우 -> 배열에서 제거 (불변성 보장 filter 사용)
         return prevSelected.filter((item) => item !== id);
       } else {
-        // 선택 안 된 경우 -> 4개 제한 체크 후 추가 (불변성 보장 전개연산자 사용)
         if (prevSelected.length >= 4) {
           alert('최대 4개까지 선택 가능합니다.');
           return prevSelected;
@@ -89,11 +86,10 @@ export default function ExpandSelection() {
     });
   };
 
-  // [핵심 기능 2] 카드 본체 클릭 -> 이동/열람 (관광지명 회색배경 & 핀 하이라이트)
+  // [핵심 기능 2] 카드 본체 클릭 -> 이동/열람
   const handleCardClick = (id) => {
     setClickedPlaceId(id);
 
-    // 해당 카드로 부드럽게 스크롤 이동
     const cardNode = cardRefs.current.get(id);
     if (cardNode) {
       cardNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -105,11 +101,8 @@ export default function ExpandSelection() {
     return place.category === activeCategory;
   });
 
-  // [핵심 기능 3] 코스 만들기 -> 로딩을 거쳐 결과 화면으로 이동
+  // [핵심 기능 3] 코스 만들기 -> 결과 이동
   const handleCreateCourse = () => {
-    // TODO: 실제로는 여기서 선택된 장소들(selectedIds)로 코스 생성 API(prepareCourseResult 등)를
-    // 호출해서 완성된 result 데이터를 next.state.result에 담아 넘겨야 함.
-    // 지금은 백엔드가 없어서 로딩 화면이 목업 결과로 대체해서 넘겨줌.
     navigate('/loading', {
       state: {
         next: {
@@ -188,12 +181,11 @@ export default function ExpandSelection() {
                 </button>
               ))}
             </div>
-            {/* 실시간 선택 개수 표시 */}
             <span className="count-badge">{selectedIds.length}/4 선택</span>
           </div>
         </div>
 
-        {/* Card List */}
+        {/* Card List (하단 버튼 아래로 스크롤) */}
         <div className="card-list web-app-scroll-y">
           {filteredPlaces.map((place) => {
             const isSelected = selectedIds.includes(place.placeId);
@@ -209,7 +201,6 @@ export default function ExpandSelection() {
                 <img src={place.imageUrl} alt={place.name} className="card-thumb" />
 
                 <div className="card-info">
-                  {/* 클릭/열람 시에만 회색 배경 변경 */}
                   <div className={`card-title-badge ${isClicked ? 'active' : ''}`}>
                     <h3 className="card-title">{place.name}</h3>
                   </div>
@@ -225,7 +216,6 @@ export default function ExpandSelection() {
                   </p>
                 </div>
 
-                {/* 우상단 원형 체크 영역 (div + stopPropagation 처리) */}
                 <div
                   className={`check-circle-btn ${isSelected ? 'checked' : ''}`}
                   onClick={(e) => handleToggleCheck(e, place.placeId)}
@@ -240,7 +230,7 @@ export default function ExpandSelection() {
           })}
         </div>
 
-        {/* Bottom CTA Button */}
+        {/* Bottom CTA Button (하단 고정) */}
         <div className="cta-wrapper">
           <button className="cta-button web-app-btn" onClick={handleCreateCourse}>
             코스 만들기 -&gt;

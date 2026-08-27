@@ -1,32 +1,63 @@
+/* ==========================================================================
+   Result Page Style (result.css)
+   ========================================================================== */
+
+/* ── 1. 전체 화면 스크롤바 숨기기 (스크롤 기능은 유지) ────────────────────── */
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE, Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* ── 2. 상단 헤더 (패딩 16px 및 4개 아이콘 배치) ───────────────────────── */
 .result-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 16px 25px 0;
+  padding: 16px 16px 0; /* 좌우 패딩 16px */
 }
 
-/* 뒤로가기 / 홈 버튼 공통 박스 */
+.result-header__group {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 버튼 사이 간격 */
+}
+
+/* 상단 버튼 공통 규격 */
 .result-header__box {
   width: 42px;
   height: 42px;
   border: none;
-  border-radius: var(--radius-card-inner);
+  border-radius: var(--radius-card-inner, 12px);
   box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.result-header__box:active {
+  transform: scale(0.95);
+}
+
+.result-header__box:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .result-header__back {
-  background: var(--color-natural);
-  color: var(--color-text);
+  background: var(--color-natural, #f0f0f0);
+  color: var(--color-text, #1f2937);
 }
 
 .result-header__home {
-  background: var(--color-primary);
+  background: var(--color-primary, #008080);
 }
 
 .result-header__home img {
@@ -34,35 +65,23 @@
   height: 24px;
 }
 
-.result-header__greeting {
-  flex: 1;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--color-text, #1f2937);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.result-header__action {
+  background: #ffffff;
+  color: var(--color-primary, #008080);
 }
 
-/* 겉상자: 은은한 민트 배경, 그 위에 흰 속상자가 얹히는 구조
-   - 화면 표시는 계속 반응형 (좌우 25px 여백 유지, max-width로 363px 상한)
-   - 캡처(html2canvas) 시에는 .is-capturing이 붙어서 항상 363px 고정폭으로 찍힘
-     (아래 .result-card.is-capturing 규칙 참고) -> 어느 기기에서 저장하든 이미지 크기 동일 */
+/* ── 3. 코스 카드 (겉상자) ────────────────────────────────────────── */
 .result-card {
   box-sizing: border-box;
-  width: calc(100% - 50px); /* 좌우 25px씩 여백 유지 */
-  max-width: 363px; /* Figma 기준값 - 넓은 화면에서 이 이상 안 커짐 */
-  margin: 25px auto 0; /* max-width에 걸렸을 때도 항상 중앙 정렬 */
+  width: calc(100% - 32px); /* 좌우 16px 여백 적용 */
+  max-width: 363px;
+  margin: 16px auto 0;
   padding: 14px 6px;
-  border-radius: 20px; /* outer card token */
-  background: linear-gradient(180deg, var(--color-primary) 60%, var(--color-sub) 100%);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--color-primary, #008080) 60%, var(--color-sub, #005f5f) 100%);
   box-shadow: var(--shadow);
 }
 
-/* 이미지 저장(html2canvas) 캡처 순간에만 붙는 클래스.
-   폭을 어느 기기에서든 항상 363px로 고정해서, 저장되는 이미지가 항상 동일한 형태가 되게 함.
-   padding/margin은 위 .result-card 값을 그대로 씀 (건드리지 않음). */
 .result-card.is-capturing {
   width: 363px;
   max-width: none;
@@ -80,7 +99,8 @@
 .result-card__title {
   font-size: 22px;
   font-weight: 700;
-  color: var(--color-sub);
+  color: var(--color-sub, #ffffff);
+  margin: 0;
 }
 
 .result-card__desc {
@@ -88,6 +108,7 @@
   font-weight: 500;
   line-height: 1.5;
   color: #ffffff;
+  margin: 0;
 }
 
 .result-card__tags {
@@ -95,9 +116,8 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 13px;
+  gap: 8px;
 }
-
 
 .result-card__tag {
   display: inline-flex;
@@ -105,14 +125,13 @@
   line-height: normal;
   font-size: 13px;
   padding: 4px 8px;
-  color: var(--color-primary);
+  color: var(--color-primary, #008080);
   background: #ffffff;
   border: 1px solid var(--color-natural, #dfe3e5);
   border-radius: 30px;
   box-sizing: border-box;
 }
 
-/* 캡처 결과 태그 글자 쏠림 조정 */
 .result-card__tag-text {
   display: inline-block;
 }
@@ -121,12 +140,10 @@
   transform: translateY(var(--tag-capture-offset, -6px));
 }
 
-/* 속상자: 흰 배경 + 그림자로 겉상자와 명확히 구분.
-   고정 width/height 제거 -> 가로는 겉상자 안에서 100%, 세로는 내용(지도/리스트/메타)에 맞춰 자동.
-   겉상자가 반응형이니 속상자도 같이 따라 늘어나거나 줄어듦(캡처 시엔 겉상자가 363 고정이라 같이 고정됨). */
+/* ── 4. 코스 카드 (속상자) ────────────────────────────────────────── */
 .result-card__inner {
   background: #ffffff;
-  border-radius: var(--radius-card-outer);
+  border-radius: var(--radius-card-outer, 16px);
   width: 100%;
   margin: 0 auto;
   padding: 16px;
@@ -136,68 +153,43 @@
   gap: 14px;
 }
 
-/* 지도 이미지 프레임 - 화면 표시는 반응형(비율 유지), 캡처 시엔 315x173 고정 */
 .result-card__map {
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.result-card__map img {
   width: 100%;
   aspect-ratio: 315 / 173;
-  height: auto;
-  object-fit: cover;
-  display: block;
+  border-radius: 15px;
+  overflow: hidden;
+  background-color: var(--color-natural, #e5e7eb);
+  background-size: cover;
+  background-position: center;
 }
 
-.is-capturing .result-card__map img {
+.is-capturing .result-card__map {
   width: 315px;
   height: 173px;
 }
 
-/* 스크롤 리스트: 약 2.5개 항목 높이만 노출, 나머지는 스크롤
-   캡처 시엔 result.jsx에서 max-height를 none으로 강제 해제함 */
+/* ── 5. 관광지 목록 (스크롤 제거 & 전체 높이 자동 확장) ───────────────── */
 .result-card__list {
   position: relative;
-  max-height: 180px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 4px 4px 4px 28px; /* 왼쪽 여백 = 점선/핀 아이콘 공간 */
-
-  /* storage 페이지와 동일하게, 스크롤 중에만 스크롤바 노출 */
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-.result-card__list:hover,
-.result-card__list:focus-within {
-  scrollbar-color: var(--color-natural) transparent;
+  padding: 4px 4px 4px 28px;
+  margin: 0;
+  overflow: visible; /* 내부 스크롤을 없애고 전체 항목 표시 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .result-card__list::-webkit-scrollbar {
-  width: 2px;
+  display: none;
 }
 
-.result-card__list::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
-}
-
-.result-card__list:hover::-webkit-scrollbar-thumb,
-.result-card__list:active::-webkit-scrollbar-thumb {
-  background: var(--color-natural);
-}
-
-/* 첫 핀 ~ 마지막 핀을 잇는 점선.
-   위치(top/height)는 result.jsx에서 실제 핀 DOM 위치를 측정해 인라인 스타일로 넣어줌.
-   -> 장소 개수가 바뀌거나 항목 높이가 달라져도 항상 첫 핀 중심 ~ 마지막 핀 중심을 연결. */
 .result-card__list-line {
   position: absolute;
   left: 10px;
   width: 0;
-  border-left: 1.5px dashed var(--color-accent);
+  border-left: 1.5px dashed var(--color-accent, #ff9f5a);
   pointer-events: none;
 }
 
@@ -208,8 +200,6 @@
   gap: 12px;
 }
 
-/* 항목 중앙이 아니라 상단에 맞춤 (설명글 유무로 항목 높이가 달라져도
-   핀은 항상 썸네일/제목이 시작하는 top 라인에 고정됨) */
 .result-card__place-pin {
   position: absolute;
   left: -18px;
@@ -218,33 +208,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff; /* 점선 위에 아이콘이 자연스럽게 얹히도록 배경으로 라인 가림 */
+  background: #ffffff;
   border-radius: 50%;
   z-index: 1;
 }
 
-/* 장소 썸네일 프레임 - 실제 비율은 최종 에셋 보고 조정 */
-.result-card__place img {
+.result-card__place-thumb {
   width: 57px;
   height: 57px;
-  border-radius: 8px; /* photo radius token */
-  object-fit: cover;
+  border-radius: 8px;
+  background-color: var(--color-natural, #e5e7eb);
+  background-size: cover;
+  background-position: center;
   flex-shrink: 0;
 }
 
 .result-card__place-name {
   font-size: 15px;
   font-weight: 500;
-  color: var(--color-primary);
+  color: var(--color-primary, #008080);
 }
 
 .result-card__place-desc {
   font-size: 13px;
-  color: var(--color-text);
-  margin-top: 2px;
+  color: var(--color-text, #1f2937);
+  margin: 2px 0 0;
 }
 
-/* "총 N곳 방문"과 "예상 소요시간"을 상하로 배치 */
 .result-card__meta {
   display: flex;
   flex-direction: column;
@@ -261,9 +251,6 @@
   gap: 4px;
 }
 
-/* 워터마크: "made with" 위 / 심볼+로고 아래.
-   align-items:flex-start로 두 줄 다 왼쪽 정렬시킨 뒤, width:fit-content + margin:0 auto로
-   묶음 전체를 카드 중앙에 위치시킴 -> "made with" 글자 왼쪽 끝이 심볼 아이콘 왼쪽 끝과 자동으로 맞춰짐 */
 .result-card__watermark {
   display: flex;
   flex-direction: column;
@@ -291,20 +278,20 @@
   display: block;
 }
 
-/* 카드 하단과의 간격을 24px로 (기존 16px -> 24px) */
+/* ── 6. 하단 버튼 영역 ─────────────────────────────────────────────── */
 .result-actions {
   display: flex;
-  gap: 15px;
-  padding: 25px 25px calc(16px + env(safe-area-inset-bottom));
+  gap: 12px;
+  padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
 }
 
 .result-actions__save,
-.result-actions__kakao {
+.result-actions__share {
   flex: 1;
   height: 48px;
   border-radius: 15px;
   border: none;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   font-family: inherit;
   box-shadow: var(--shadow);
@@ -312,21 +299,27 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.result-actions__save:active,
+.result-actions__share:active {
+  transform: scale(0.97);
 }
 
 .result-actions__save {
-  background: var(--color-accent);
+  background: var(--color-accent, #ff9f5a);
   color: #ffffff;
-  font-size: 18px;
-  font-weight: 600;
-  box-shadow: var(--shadow);
 }
 
-.result-actions__save:disabled {
+.result-actions__save:disabled,
+.result-actions__share:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.result-actions__kakao {
+.result-actions__share {
   background: var(--color-kakao, #fee500);
-  color: #1f2937; /* MessageCircle fill="currentColor"가 이 색을 그대로 따라감 */
+  color: #1f2937;
 }

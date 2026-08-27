@@ -92,7 +92,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: visible; /* 그림자가 잘리지 않도록 */
+  overflow: hidden; /* 영역 밖 스크롤 잘림 처리 */
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -100,22 +100,35 @@
 .main-spots__detail-wrap {
   flex: 1;
   overflow-y: auto;
-  padding: 25px 0 120px; /* 하단은 떠 있는 CTA 버튼에 가려지지 않도록 여유 확보 */
+  /* 상단 패딩 16px, 좌우 패딩 16px 적용, 하단은 Floating CTA에 가려지지 않도록 90px 여유 확보 */
+  padding: 16px 16px 90px 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+
+  /* 스크롤바 숨기기 (Firefox / IE/Edge / Chrome, Safari, Opera) */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* 하단 CTA 영역: ExpandSelection의 .cta-wrapper와 동일하게 리스트 위에 떠 있는 그라데이션 페이드 */
+.main-spots__list::-webkit-scrollbar,
+.main-spots__detail-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+/* 하단 Floating CTA 영역: 스크롤되는 목록 상단에 고정 덮임 */
 .main-spots__cta-wrapper {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 25px 20px 25px;
+  padding: 16px 16px 20px 16px;
   z-index: 10;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-sub, #b7ecf5) 60%);
+  pointer-events: none; /* 배경의 투명 영역 클릭 투과 */
 }
 
 .main-spots__submit-btn {
@@ -132,6 +145,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  pointer-events: auto; /* 버튼 동작 복구 */
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
@@ -148,19 +162,20 @@
 
 .spot-card {
   position: relative;
-  width: 360px;
+  width: 100%;
   box-sizing: border-box;
   border: 2px solid transparent;
   border-radius: var(--radius-card-outer);
-  padding: 14px;
+  padding: 12px 12px; /* 👈 좌우 패딩 16px로 조정 */
   cursor: pointer;
   background: #FFFFFF;
   box-shadow: var(--shadow);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
 }
 
 .spot-card:not(.spot-card--expanded) {
-  height: 160px;
+  height: 140px;
   overflow: hidden;
 }
 
@@ -179,9 +194,18 @@
 }
 
 .spot-card--expanded {
-  height: 520px;
+  height: auto;
+  max-height: 520px;
   overflow-y: auto;
   cursor: default;
+
+  /* 펼쳐진 카드 내부 스크롤바 숨기기 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.spot-card--expanded::-webkit-scrollbar {
+  display: none;
 }
 
 .spot-card__top {
@@ -191,8 +215,8 @@
 }
 
 .spot-card__thumb {
-  width: 120px;
-  height: 120px;
+  width: 110px;
+  height: 110px;
   border-radius: var(--radius-photo);
   background: var(--color-ground-up);
   flex: 0 0 auto;
@@ -215,6 +239,7 @@
 .spot-card__info {
   flex: 1;
   min-width: 0;
+  padding-right: 28px; /* 오른쪽 체크 버튼 영역과의 겹침 방지 */
 }
 
 .spot-card__title {
@@ -254,14 +279,15 @@
 .spot-card__summary--clamp {
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .spot-card__check {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px; /* 👈 좌우 패딩 16px에 맞춰 위치 조정 */
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -281,7 +307,7 @@
 
 .spot-card--expanded .spot-card__check {
   top: 14px;
-  right: 14px;
+  right: 16px;
 }
 
 .spot-card__check--active {

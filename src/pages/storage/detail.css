@@ -102,19 +102,16 @@
 }
 
 .archive-detail-card__map {
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.archive-detail-card__map img {
   width: 100%;
   aspect-ratio: 315 / 173;
-  height: auto;
-  object-fit: cover;
-  display: block;
+  border-radius: 15px;
+  overflow: hidden;
+  background-color: var(--color-natural);
+  background-size: cover;
+  background-position: center;
 }
 
-.is-capturing .archive-detail-card__map img {
+.is-capturing .archive-detail-card__map {
   width: 315px;
   height: 173px;
 }
@@ -178,11 +175,13 @@
   z-index: 1;
 }
 
-.archive-detail-card__place img {
+.archive-detail-card__place-thumb {
   width: 57px;
   height: 57px;
   border-radius: var(--radius-photo);
-  object-fit: cover;
+  background-color: var(--color-natural);
+  background-size: cover;
+  background-position: center;
   flex-shrink: 0;
 }
 
