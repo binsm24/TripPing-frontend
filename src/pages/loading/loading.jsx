@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MobileLayout from '../../components/MobileLayout';
+import { formatDisplayName } from '../../components/auth';
 import './loading.css';
 import symbolW from '../../assets/symbolW.png';
 import { mockCourseResult } from '../result/mockData';
@@ -9,11 +10,6 @@ import { mockCourseResult } from '../result/mockData';
 // 도착하는 시점"에 로딩이 끝나야 하므로, 이 값과 setTimeout은 최종적으로 삭제되고
 // 아래 useEffect가 실제 API 호출을 await 하는 형태로 바뀔 예정.
 const PLACEHOLDER_DELAY_MS = 1800;
-
-function formatDisplayName(name) {
-  if (!name) return '여행자';
-  return name.length > 4 ? `${name.slice(0, 4)}...` : name;
-}
 
 function buildPhrases(userName) {
   return [

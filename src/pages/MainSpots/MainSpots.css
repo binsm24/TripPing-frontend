@@ -100,6 +100,8 @@
 .main-spots__detail-wrap {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   /* 상단 패딩 16px, 좌우 패딩 16px 적용, 하단은 Floating CTA에 가려지지 않도록 90px 여유 확보 */
   padding: 16px 16px 90px 16px;
   display: flex;
@@ -195,23 +197,30 @@
 
 .spot-card--expanded {
   height: auto;
-  max-height: 520px;
-  overflow-y: auto;
   cursor: default;
-
-  /* 펼쳐진 카드 내부 스크롤바 숨기기 */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.spot-card--expanded::-webkit-scrollbar {
-  display: none;
+  /* 바깥 .main-spots__detail-wrap이 이미 스크롤을 담당하고,
+     펼쳐졌을 때 이 카드가 그 안의 유일한 내용물이라 여기서 또 자체 스크롤(max-height +
+     overflow-y:auto)을 걸면 스크롤 컨테이너가 이중으로 겹쳐 터치 스크롤이 버벅임.
+     그래서 여기서는 그냥 height:auto로 두고 스크롤은 바깥에만 맡김. */
 }
 
 .spot-card__top {
   display: flex;
   gap: 12px;
   align-items: flex-start;
+}
+
+/* 목록(미확장) 카드에서만: info 영역 높이를 썸네일(사진) 높이에 맞춰서
+   설명 텍스트가 "사진 높이"를 기준으로 잘리도록 함(고정 줄 수 기준 X) */
+.spot-card:not(.spot-card--expanded) .spot-card__top {
+  align-items: stretch;
+}
+
+.spot-card:not(.spot-card--expanded) .spot-card__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 👈 자식(제목)의 가로 늘어남 방지 */
+  min-height: 0;
 }
 
 .spot-card__thumb {
@@ -252,16 +261,12 @@
   padding: 2px 4px;
   margin-left: -4px;
   transition: background-color 0.15s ease;
+  flex-shrink: 0;
 }
 
 /* 목록 화면에서만 클릭 가능한 링크처럼 보이게 (상세 이동 트리거는 오직 이 텍스트) */
 .spot-card__title--link {
   cursor: pointer;
-}
-
-.spot-card__title--link:hover,
-.spot-card__title--link:focus-visible {
-  text-decoration: underline;
 }
 
 /* 카드가 포커스(지도 확인용)되면 제목에 회색 배경 */
@@ -277,9 +282,11 @@
 }
 
 .spot-card__summary--clamp {
+  flex: 1;
+  min-height: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

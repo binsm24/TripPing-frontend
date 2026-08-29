@@ -44,7 +44,10 @@
   left: 0;
   right: 0;
   z-index: 10;
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)) 16px;
+  /* MobileLayout이 이미 padding-bottom: var(--safe-bottom)을 적용하므로
+     여기서 safe-area-inset-bottom을 또 더하면 안전영역만큼 버튼이 위로 떠버림.
+     상하좌우 16px로 통일. */
+  padding: 16px;
   
   /* 하단 그라데이션: 위쪽은 투명하고 아래쪽은 배경색과 이어져서 스크롤 내용이 은은하게 가려짐 */
   background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-sub, #b7ecf5) 70%);

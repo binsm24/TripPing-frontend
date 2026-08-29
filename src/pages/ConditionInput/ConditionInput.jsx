@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MobileLayout from '../../components/MobileLayout';
+import { getUserName, formatDisplayName } from '../../components/auth';
 import './ConditionInput.css';
 
 const CATEGORY_LABELS = {
@@ -119,6 +120,8 @@ export default function ConditionInput() {
 
   const category = location.state?.category ?? 'nature';
   const categoryLabel = CATEGORY_LABELS[category] ?? '자연';
+  // 카카오 로그인 닉네임이 있으면 그 이름, 비회원이면 '여행자'
+  const displayName = formatDisplayName(getUserName());
 
   const [age, setAge] = useState('');
   const [companion, setCompanion] = useState(null);
@@ -179,7 +182,7 @@ export default function ConditionInput() {
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
               </svg>
-              유진 님의 나이
+              {displayName} 님의 나이
             </label>
             <div className="condition__age-field">
               <input

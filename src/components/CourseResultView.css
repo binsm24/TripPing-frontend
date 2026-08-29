@@ -1,0 +1,339 @@
+/* ==========================================================================
+   CourseResultView Style
+   ========================================================================== */
+
+/* ── 1. 전체 화면 스크롤바 숨기기 ──────────────────────────────────── */
+html, body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── 2. 상단 헤더 ────────────────────────────────────────────────── */
+.course-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 0;
+}
+
+.course-result-header__group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-result-header__box {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: var(--radius-card-inner, 12px);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.course-result-header__box:active {
+  transform: scale(0.95);
+}
+
+.course-result-header__box:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.course-result-header__back {
+  background: var(--color-natural);
+  color: var(--color-text);
+}
+
+.course-result-header__home {
+  background: var(--color-primary);
+}
+
+.course-result-header__home img {
+  width: 22px;
+  height: 24px;
+}
+
+.course-result-header__action {
+  background: #ffffff;
+  color: var(--color-primary, #008080);
+}
+
+/* ── 3. 코스 카드 (겉상자) ────────────────────────────────────────── */
+.course-result-card {
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  max-width: 363px;
+  margin: 16px auto 0;
+  padding: 20px 10px 14px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--color-primary) 60%, var(--color-sub) 100%);
+  box-shadow: var(--shadow);
+}
+
+/* 캡처 시 화면 중앙 마진을 제거하여 좌측 쏠림/잘림 방지 */
+.course-result-card.is-capturing {
+  width: 100% !important;
+  max-width: 363px !important;
+  margin: 0 auto !important;
+  transform: none !important;
+}
+
+.course-result-card__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 0 8px 18px;
+}
+
+.course-result-card__title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-sub);
+  margin: 0;
+  word-break: keep-all;
+}
+
+.course-result-card__desc {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0;
+  word-break: keep-all;
+  max-width: 280px;
+}
+
+/* ── 태그 영역 ── */
+.course-result-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.course-result-card__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 9px;
+  color: var(--color-primary);
+  background: #ffffff;
+  border-radius: 30px;
+  box-sizing: border-box;
+}
+
+.course-result-card__tag-text {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* ── 4. 코스 카드 (속상자) ────────────────────────────────────────── */
+.course-result-card__inner {
+  background: #ffffff;
+  border-radius: 15px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 14px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.course-result-card__map {
+  width: 100%;
+  aspect-ratio: 315 / 173;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--color-natural);
+  background-size: cover;
+  background-position: center;
+}
+
+.is-capturing .course-result-card__map {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 315 / 173 !important;
+}
+
+/* ── 5. 관광지 목록 ────────────────────────────────────────────────── */
+.course-result-card__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 4px 4px 28px;
+  margin: 0;
+  overflow: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.course-result-card__list::-webkit-scrollbar {
+  display: none;
+}
+
+.course-result-card__list-line {
+  position: absolute;
+  left: 10px;
+  width: 0;
+  border-left: 1.5px dashed var(--color-accent);
+  pointer-events: none;
+}
+
+.course-result-card__place {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.course-result-card__place-pin {
+  position: absolute;
+  left: -18px;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.course-result-card__place-thumb {
+  width: 57px;
+  height: 57px;
+  border-radius: var(--radius-photo, 8px);
+  background-color: var(--color-natural);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.course-result-card__place-name {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-primary);
+}
+
+.course-result-card__place-desc {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-text);
+  margin: 2px 0 0;
+  word-break: keep-all;
+}
+
+.course-result-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-text);
+  padding-top: 16px;
+  border-top: 2px solid var(--color-natural);
+}
+
+.course-result-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.course-result-card__watermark {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: fit-content;
+  margin: 0 auto;
+  gap: 2px;
+  padding-top: 10px;
+}
+
+.course-result-card__watermark-label {
+  display: block;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.course-result-card__watermark-brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.course-result-card__watermark-brand img {
+  height: 25px;
+  display: block;
+}
+
+/* ── 6. 하단 버튼 영역 ─────────────────────────────────────────────── */
+.course-result-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+.course-result-actions__save,
+.course-result-actions__share {
+  flex: 1;
+  height: 48px;
+  border-radius: 15px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.course-result-actions__save:active,
+.course-result-actions__share:active {
+  transform: scale(0.97);
+}
+
+.course-result-actions__save {
+  background: var(--color-accent, #ff9f5a);
+  color: #ffffff;
+}
+
+.course-result-actions__save:disabled,
+.course-result-actions__share:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.course-result-actions__share {
+  background: var(--color-accent);
+  color: #ffffff;
+}

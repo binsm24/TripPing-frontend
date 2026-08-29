@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { BookMarked } from 'lucide-react';
 import MobileLayout from '../../components/MobileLayout';
+import { getUserName, formatDisplayName } from '../../components/auth';
 import symbol from '../../assets/symbol.png';
 import natureImg from '../../assets/nature.jpg';
 import cityImg from '../../assets/city.jpg';
@@ -13,11 +14,10 @@ const CATEGORIES = [
   { key: 'complex', title: '복합', subtitle: '자연+도시, 둘 다 즐기기', image: complexImg },
 ];
 
-// TODO: 로그인 연동 후 실제 사용자 이름으로 교체
-const USER_NAME = '유진';
-
 export default function ThreeSelect() {
   const navigate = useNavigate();
+  // 카카오 로그인 닉네임이 있으면 그 이름, 비회원이면 '여행자'
+  const displayName = formatDisplayName(getUserName());
 
   const handleArchive = () => {
     navigate('/storage');
@@ -45,7 +45,7 @@ export default function ThreeSelect() {
         <div className="three-select__hero">
           <img src={symbol} alt="" className="three-select__symbol" />
           <p className="three-select__greeting">
-            안녕하세요, {USER_NAME} 님.
+            안녕하세요, {displayName} 님.
             <br />
             어디로 떠나고 싶으신가요?
           </p>
