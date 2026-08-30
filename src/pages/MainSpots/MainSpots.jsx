@@ -12,7 +12,25 @@ import {
   ImageOff,
 } from 'lucide-react'
 import MobileLayout from '../../components/MobileLayout'
+import { loadKakaoMapScript, getCssVar } from '../../components/kakaoMap'
 import './MainSpots.css'
+
+// lucide-react의 MapPin 아이콘과 동일한 모양의 마커 DOM을 만듭니다.
+// (카카오맵 CustomOverlay는 React 엘리먼트가 아니라 실제 DOM 노드를 요구해서 직접 SVG로 구현)
+function createSpotPinElement({ color, big }) {
+  const size = big ? 34 : 30
+  const wrapper = document.createElement('div')
+  wrapper.style.cursor = 'pointer'
+  wrapper.style.filter = 'drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25))'
+  wrapper.style.transition = 'transform 0.15s ease'
+  wrapper.innerHTML = `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="10" r="3" fill="${color}" stroke="${color}" stroke-width="1.5" />
+    </svg>
+  `
+  return wrapper
+}
 
 const SPOTS = [
   {
@@ -21,7 +39,6 @@ const SPOTS = [
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
-    pin: { top: '46%', left: '16%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
     fee: '무료',
@@ -35,7 +52,6 @@ const SPOTS = [
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
-    pin: { top: '16%', left: '64%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
     fee: '무료',
@@ -49,7 +65,6 @@ const SPOTS = [
     summary:
       '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
     thumbnail: null,
-    pin: { top: '64%', left: '66%' },
     address: '경기 파주시 광탄면 기산로 313',
     hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
     fee: '무료',
@@ -91,12 +106,130 @@ function MainSpots() {
   const handleOpenDetail = (id, e) => {
     e.stopPropagation()
     setOpenSpotId(id)
+    // 상세 화면에서 보고 있는 장소가 지도에서도 눈에 띄도록, 핀 클릭 때와 동일하게 포커스 이동
+    setFocusedId(id)
   }
 
   const handlePinClick = (id) => {
     setOpenSpotId(null)
     setFocusedId(id)
   }
+
+  // ------------------------------ 카카오맵 ------------------------------
+  const mapContainerRef = useRef(null) // 지도를 그릴 DOM
+  const mapObjRef = useRef(null) // 카카오맵 인스턴스
+  const overlaysRef = useRef([]) // 현재 지도 위에 떠 있는 커스텀 오버레이(핀) 목록
+  const [mapReady, setMapReady] = useState(false)
+  const [mapError, setMapError] = useState(false)
+  // 각 관광지 id -> { lat, lng }. 주소를 Geocoder로 변환한 결과를 담아둡니다.
+  const [spotPositions, setSpotPositions] = useState({})
+
+  // 1) SDK 로드 + 지도 생성 + 주소 -> 좌표 변환(Geocoding)
+  useEffect(() => {
+    let cancelled = false
+
+    loadKakaoMapScript()
+      .then((kakao) => {
+        if (cancelled || !mapContainerRef.current) return
+
+        const map = new kakao.maps.Map(mapContainerRef.current, {
+          center: new kakao.maps.LatLng(37.5665, 126.978), // 좌표 계산 전 임시 중심
+          level: 5,
+        })
+        mapObjRef.current = map
+
+        const geocoder = new kakao.maps.services.Geocoder()
+        const geocodeSpot = (spot) =>
+          new Promise((resolve) => {
+            geocoder.addressSearch(spot.address, (result, status) => {
+              if (status === kakao.maps.services.Status.OK && result[0]) {
+                resolve({ id: spot.id, lat: Number(result[0].y), lng: Number(result[0].x) })
+              } else {
+                resolve(null)
+              }
+            })
+          })
+
+        Promise.all(SPOTS.map(geocodeSpot)).then((results) => {
+          if (cancelled) return
+          const valid = results.filter(Boolean)
+
+          // 목업 데이터라 주소가 모두 동일해 좌표가 겹칠 수 있습니다.
+          // 완전히 같은 좌표가 나오면 핀이 서로 가려지지 않도록 아주 살짝 흩어줍니다.
+          const seen = new Map()
+          const positions = {}
+          valid.forEach(({ id, lat, lng }) => {
+            const key = `${lat.toFixed(5)},${lng.toFixed(5)}`
+            const duplicateIndex = seen.get(key) ?? 0
+            seen.set(key, duplicateIndex + 1)
+            const jitter = duplicateIndex * 0.0009
+            positions[id] = { lat: lat + jitter, lng: lng + jitter * 1.3 }
+          })
+
+          setSpotPositions(positions)
+          setMapReady(true)
+
+          const coords = Object.values(positions)
+          if (coords.length > 0) {
+            const bounds = new kakao.maps.LatLngBounds()
+            coords.forEach((c) => bounds.extend(new kakao.maps.LatLng(c.lat, c.lng)))
+            map.setBounds(bounds)
+          }
+        })
+      })
+      .catch(() => {
+        if (!cancelled) setMapError(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // 2) 상태(선택/포커스/상세보기)가 바뀔 때마다 핀(커스텀 오버레이) 다시 그리기
+  useEffect(() => {
+    const kakao = window.kakao
+    if (!mapReady || !kakao || !mapObjRef.current) return
+
+    overlaysRef.current.forEach((overlay) => overlay.setMap(null))
+    overlaysRef.current = []
+
+    SPOTS.forEach((spot) => {
+      const pos = spotPositions[spot.id]
+      if (!pos) return
+
+      const isSelected = selectedId === spot.id
+      const isBig = isSelected || focusedId === spot.id || openSpotId === spot.id
+      const color = isSelected
+        ? getCssVar('--color-accent', '#FF9F5A')
+        : getCssVar('--color-primary', '#007A8C')
+
+      const el = createSpotPinElement({ color, big: isBig })
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        handlePinClick(spot.id)
+      })
+
+      const overlay = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(pos.lat, pos.lng),
+        content: el,
+        xAnchor: 0.5,
+        yAnchor: 1,
+        zIndex: isBig ? 2 : 1,
+      })
+      overlay.setMap(mapObjRef.current)
+      overlaysRef.current.push(overlay)
+    })
+  }, [mapReady, spotPositions, selectedId, focusedId, openSpotId])
+
+  // 3) 목록에서 카드를 포커스했을 때(또는 핀 클릭) 지도도 해당 위치로 부드럽게 이동
+  useEffect(() => {
+    const kakao = window.kakao
+    if (!mapReady || !kakao || !mapObjRef.current || !focusedId) return
+    const pos = spotPositions[focusedId]
+    if (!pos) return
+    mapObjRef.current.panTo(new kakao.maps.LatLng(pos.lat, pos.lng))
+  }, [focusedId, mapReady, spotPositions])
 
   const handleBack = () => {
     if (openSpotId) {
@@ -112,7 +245,11 @@ function MainSpots() {
 
   const handleSubmit = () => {
     if (!canSubmit) return
-    const selectedSpot = SPOTS.find((s) => s.id === selectedId)
+    const spot = SPOTS.find((s) => s.id === selectedId)
+    const pos = spotPositions[selectedId]
+    // Expansion 화면의 지도 중심 + 지역 태그(coord2RegionCode) 변환에 필요해서
+    // Geocoder로 얻은 실제 좌표를 mainSpot에 실어서 넘김
+    const selectedSpot = pos ? { ...spot, lat: pos.lat, lng: pos.lng } : spot
     navigate('/loading', {
       state: {
         next: {
@@ -127,28 +264,14 @@ function MainSpots() {
     <MobileLayout>
       <div className="main-spots">
         <div className="main-spots__map">
-          <div className="main-spots__map-placeholder">
-            {SPOTS.map((spot) => {
-              const isSelected = selectedId === spot.id
-              const isBig = isSelected || focusedId === spot.id || openSpotId === spot.id
-              return (
-                <button
-                  key={spot.id}
-                  type="button"
-                  className={`main-spots__pin ${isBig ? 'main-spots__pin--big' : ''}`}
-                  style={{ top: spot.pin.top, left: spot.pin.left }}
-                  onClick={() => handlePinClick(spot.id)}
-                  aria-label={`${spot.name} 위치`}
-                >
-                  <MapPin
-                    size={30}
-                    color={isSelected ? 'var(--color-accent)' : 'var(--color-primary)'}
-                    fill={isSelected ? 'var(--color-accent)' : 'var(--color-primary)'}
-                    strokeWidth={1.5}
-                  />
-                </button>
-              )
-            })}
+          {/* 카카오맵이 그려지는 영역. 핀은 위 useEffect에서 CustomOverlay로 그립니다. */}
+          <div className="main-spots__map-placeholder" ref={mapContainerRef}>
+            {mapError && (
+              <div className="main-spots__map-error">
+                지도를 불러오지 못했습니다.<br />
+                .env의 VITE_KAKAO_MAP_KEY 값을 확인해주세요.
+              </div>
+            )}
           </div>
 
           <button className="main-spots__back-btn" aria-label="뒤로 가기" onClick={handleBack}>

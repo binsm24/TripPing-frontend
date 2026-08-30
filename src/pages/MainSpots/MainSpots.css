@@ -7,50 +7,33 @@
   background: var(--color-sub);
 }
 
-/* ── 지도 영역 (임시 자리표시자) ─────────────────────────── */
+/* ── 지도 영역 ────────────────────────────────────────── */
 
 .main-spots__map {
   position: relative;
   height: 280px;
   flex: 0 0 auto;
   overflow: hidden;
+  background: var(--color-ground-up); /* SDK 로딩 중 잠깐 보이는 배경 */
+  z-index: 1; /* 아래 시트(z-index: 5)가 지도 위 -20px 겹침 구간을 항상 덮도록 고정 */
 }
 
 .main-spots__map-placeholder {
   position: absolute;
   inset: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.5) 0px,
-      rgba(255, 255, 255, 0.5) 1px,
-      transparent 1px,
-      transparent 40px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.5) 0px,
-      rgba(255, 255, 255, 0.5) 1px,
-      transparent 1px,
-      transparent 40px
-    ),
-    linear-gradient(160deg, var(--color-ground-up) 0%, var(--color-natural) 100%);
 }
 
-.main-spots__pin {
+.main-spots__map-error {
   position: absolute;
-  transform: translate(-50%, -100%);
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25));
-  transition: transform 0.15s ease;
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.main-spots__pin--big {
-  transform: translate(-50%, -100%) scale(1.15);
-  z-index: 2;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
 }
 
 .main-spots__back-btn {
@@ -90,6 +73,7 @@
   border-radius: var(--radius-card-outer) var(--radius-card-outer) 0 0;
   margin-top: -20px;
   position: relative;
+  z-index: 5; /* 실제 카카오맵 SDK 내부 레이어보다 항상 위에 그려지도록 명시 */
   display: flex;
   flex-direction: column;
   overflow: hidden; /* 영역 밖 스크롤 잘림 처리 */

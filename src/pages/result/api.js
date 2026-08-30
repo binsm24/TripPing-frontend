@@ -1,9 +1,13 @@
 // src/pages/result/api.js
-// 결과 화면 전용 API/유틸을 한 파일로 모음: 코스 생성, 보관함 저장, 지역 태그 변환, 오케스트레이션
+// 결과 화면 전용 API/유틸을 한 파일로 모음: 코스 생성, 보관함 저장, 오케스트레이션
+//
+// 좌표 -> 지역명 변환은 여기서 REST로 하지 않음. Expansion 화면이 카카오맵 SDK를
+// 이미 로드한 김에 coord2RegionCode(services 라이브러리, JS 키만 사용)로 미리 계산해서
+// regionTag 문자열로 넘겨주고, 여기서는 그 값을 그대로 받아쓰기만 함.
+// (REST 키/Authorization 헤더/도메인 별도 등록 불필요 - src/components/kakaoMap.js 참고)
 import { getAuthToken, isLoggedIn } from '../../components/auth';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
-const KAKAO_REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
 
 // ---------- 코스 생성: POST /api/courses ----------
 async function createCourse(recommendationId, selectedPlaceIds) {
@@ -45,29 +49,6 @@ async function saveCourse(courseId, token) {
   return json.data;
 }
 
-// ---------- 좌표 -> 지역명(시/군/구) 변환: 카카오 coord2regioncode ----------
-async function getRegionTag(latitude, longitude) {
-  if (!latitude || !longitude) return null;
-
-  try {
-    const res = await fetch(
-      `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${longitude}&y=${latitude}`,
-      { headers: { Authorization: `KakaoAK ${KAKAO_REST_API_KEY}` } }
-    );
-
-    if (!res.ok) return null;
-
-    const json = await res.json();
-    const region = json.documents?.[0];
-
-    // region_2depth_name: 시/군/구 단위(예: "파주시"). 세종 등 2depth가 비어있는 경우 1depth로 대체
-    return region?.region_2depth_name || region?.region_1depth_name || null;
-  } catch (err) {
-    console.error('지역 변환 실패:', err);
-    return null;
-  }
-}
-
 const formatTag = (t) =>
   typeof t === 'string' ? (t.startsWith('#') ? t : `#${t}`) : null;
 
@@ -80,7 +61,8 @@ const formatTag = (t) =>
  * @param {number[]} params.selectedPlaceIds
  * @param {string} params.travelType - 자연/도시/복합 (앞 단계 사용자 선택)
  * @param {string} params.companion - 동행자 (앞 단계 사용자 선택)
- * @param {{ latitude: number, longitude: number }} params.mainPlace - 선정 관광지 좌표
+ * @param {string|null} params.regionTag - Expansion 화면에서 카카오맵 SDK(coord2RegionCode)로
+ *   미리 변환해둔 지역명(시/군/구). 좌표가 아니라 변환된 문자열을 그대로 받음.
  * @returns {Promise<object>} 결과 화면에서 바로 쓸 수 있는 완성된 코스 데이터 (tags 배열 포함)
  */
 export async function prepareCourseResult({
@@ -88,14 +70,9 @@ export async function prepareCourseResult({
   selectedPlaceIds,
   travelType,
   companion,
-  mainPlace,
+  regionTag,
 }) {
-  const [courseData, region] = await Promise.all([
-    createCourse(recommendationId, selectedPlaceIds),
-    mainPlace?.latitude && mainPlace?.longitude
-      ? getRegionTag(mainPlace.latitude, mainPlace.longitude)
-      : Promise.resolve(null),
-  ]);
+  const courseData = await createCourse(recommendationId, selectedPlaceIds);
 
   // 보관함 자동 저장(회원만) - 결과 화면 진입을 지연시키지 않도록 fire-and-forget
   if (isLoggedIn()) {
@@ -107,7 +84,7 @@ export async function prepareCourseResult({
 
   // 태그 순서: 유형 - 지역 - 동행자 - AI 생성 태그
   const aiTag = Array.isArray(courseData?.tag) ? courseData.tag[0] : courseData?.tag;
-  const tags = [travelType, region, companion, aiTag].map(formatTag).filter(Boolean);
+  const tags = [travelType, regionTag, companion, aiTag].map(formatTag).filter(Boolean);
 
   return { ...courseData, tags };
 }

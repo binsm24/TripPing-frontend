@@ -1,15 +1,53 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Compass, MapPin } from 'lucide-react';
+import { ChevronLeft, Check, Compass } from 'lucide-react';
 import MobileLayout from '../../components/MobileLayout';
+import { loadKakaoMapScript, getCssVar, getRegionTagViaSDK } from '../../components/kakaoMap';
 import './ExpandSelection.css';
 
-// MOCK DATA (추가 추천 관광지 목록)
-const MOCK_MAIN_PLACE = {
+// 메인 관광지 핀 (원형 배지 + Compass 아이콘). .main-pin-badge 스타일과 동일하게 맞췄습니다.
+function createMainPinElement() {
+  const accent = getCssVar('--color-accent', '#FF9F5A');
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <div style="
+      width: 32px; height: 32px; border-radius: 50%;
+      background-color: ${accent}; border: 2px solid #ffffff;
+      display: flex; align-items: center; justify-content: center;
+    ">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>
+        <circle cx="12" cy="12" r="10"/>
+      </svg>
+    </div>
+  `;
+  return wrapper;
+}
+
+// 추가 추천 장소 핀 (lucide MapPin과 동일한 모양). .mock-pin 스타일과 동일하게 맞췄습니다.
+function createPlacePinElement({ color, active }) {
+  const size = active ? 32 : 26;
+  const wrapper = document.createElement('div');
+  wrapper.style.cursor = 'pointer';
+  wrapper.style.transition = 'all 0.2s ease';
+  wrapper.style.filter = active ? 'drop-shadow(0px -2px 4px rgba(0, 0, 0, 0.25))' : 'none';
+  wrapper.innerHTML = `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+      <circle cx="12" cy="10" r="3"/>
+    </svg>
+  `;
+  return wrapper;
+}
+
+// MOCK DATA (추가 추천 관광지 목록).
+// TODO: 실제로는 백엔드가 각 장소의 위도(lat)/경도(lng)를 내려줘야 합니다.
+// 지금은 백엔드가 없어서 마장호수(메인 관광지) 주변에 임의로 좌표를 흩어 놓은 목업입니다.
+const FALLBACK_MAIN_PLACE = {
   placeId: 'main-01',
   name: '파주 마장호수',
-  top: '30%',
-  left: '40%',
+  lat: 37.8189,
+  lng: 126.902,
 };
 
 const MOCK_PLACES = [
@@ -19,8 +57,8 @@ const MOCK_PLACES = [
     category: '식당',
     summary: '효능이 매력적인 우동 전문점. 설명이 두 줄로 이상 반응하는 경우 상단으로 이동합니다.',
     imageUrl: 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=300',
-    top: '50%',
-    left: '50%',
+    lat: 37.8175,
+    lng: 126.9105,
   },
   {
     placeId: 'place-02',
@@ -28,8 +66,8 @@ const MOCK_PLACES = [
     category: '카페',
     summary: '마장호수 출렁다리가 전체적으로 보이는 아름다운 커리 카페',
     imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300',
-    top: '25%',
-    left: '65%',
+    lat: 37.821,
+    lng: 126.907,
   },
   {
     placeId: 'place-03',
@@ -37,8 +75,8 @@ const MOCK_PLACES = [
     category: '관광지',
     summary: '조용하고 조각적인 전시를 즐길 수 있는 문화 공간',
     imageUrl: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=300',
-    top: '70%',
-    left: '70%',
+    lat: 37.814,
+    lng: 126.913,
   },
   {
     placeId: 'place-04',
@@ -46,8 +84,8 @@ const MOCK_PLACES = [
     category: '관광지',
     summary: '가족들과 함께 산책하는 것은 독점적인 코스입니다.',
     imageUrl: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=300',
-    top: '15%',
-    left: '20%',
+    lat: 37.8225,
+    lng: 126.8975,
   },
 ];
 
@@ -60,12 +98,128 @@ export default function ExpandSelection() {
 
   const cardRefs = useRef(new Map());
 
+  // MainSpots에서 넘어온 실제 선택 관광지(좌표 포함). 없으면(직접 진입 등) 목업으로 대체.
+  const incomingMainSpot = incomingState.mainSpot;
+  const mainPlace =
+    incomingMainSpot?.lat && incomingMainSpot?.lng
+      ? {
+          placeId: incomingMainSpot.id,
+          name: incomingMainSpot.name,
+          lat: incomingMainSpot.lat,
+          lng: incomingMainSpot.lng,
+        }
+      : FALLBACK_MAIN_PLACE;
+
   // 1. 선택된 장소 ID 목록 (N/4 개수 카운트 연동)
   const [selectedIds, setSelectedIds] = useState([]);
   // 2. 현재 클릭하여 열람 중인 장소 ID (관광지명 회색 배경 & 핀 하이라이트)
   const [clickedPlaceId, setClickedPlaceId] = useState(null);
   // 3. 카테고리 필터 상태
   const [activeCategory, setActiveCategory] = useState('전체');
+
+  // ------------------------------ 카카오맵 ------------------------------
+  const mapContainerRef = useRef(null);
+  const mapObjRef = useRef(null);
+  const overlaysRef = useRef([]);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState(false);
+  // 좌표 -> 지역명(시/군/구). 결과 화면 태그에 쓰기 위해 mainPlace 좌표로 1회만 계산.
+  const [regionTag, setRegionTag] = useState(null);
+
+  // 1) SDK 로드 + 지도 생성 (메인 관광지 + 추가 추천 장소가 모두 보이도록 범위 조정)
+  useEffect(() => {
+    let cancelled = false;
+
+    loadKakaoMapScript()
+      .then((kakao) => {
+        if (cancelled || !mapContainerRef.current) return;
+
+        const map = new kakao.maps.Map(mapContainerRef.current, {
+          center: new kakao.maps.LatLng(mainPlace.lat, mainPlace.lng),
+          level: 6,
+        });
+        mapObjRef.current = map;
+
+        const bounds = new kakao.maps.LatLngBounds();
+        bounds.extend(new kakao.maps.LatLng(mainPlace.lat, mainPlace.lng));
+        MOCK_PLACES.forEach((place) => {
+          bounds.extend(new kakao.maps.LatLng(place.lat, place.lng));
+        });
+        map.setBounds(bounds);
+
+        setMapReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setMapError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2) 선택/열람 상태가 바뀔 때마다 핀(커스텀 오버레이) 다시 그리기
+  useEffect(() => {
+    const kakao = window.kakao;
+    if (!mapReady || !kakao || !mapObjRef.current) return;
+
+    overlaysRef.current.forEach((overlay) => overlay.setMap(null));
+    overlaysRef.current = [];
+
+    // 메인 관광지 핀
+    const mainOverlay = new kakao.maps.CustomOverlay({
+      position: new kakao.maps.LatLng(mainPlace.lat, mainPlace.lng),
+      content: createMainPinElement(),
+      xAnchor: 0.5,
+      yAnchor: 0.5,
+      zIndex: 10,
+    });
+    mainOverlay.setMap(mapObjRef.current);
+    overlaysRef.current.push(mainOverlay);
+
+    // 추가 추천 장소 핀
+    MOCK_PLACES.forEach((place) => {
+      const isSelected = selectedIds.includes(place.placeId);
+      const isClicked = clickedPlaceId === place.placeId;
+      const color = isSelected
+        ? getCssVar('--color-accent', '#FF9F5A')
+        : getCssVar('--color-primary', '#007A8C');
+
+      const el = createPlacePinElement({ color, active: isClicked });
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleCardClick(place.placeId);
+      });
+
+      const overlay = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(place.lat, place.lng),
+        content: el,
+        xAnchor: 0.5,
+        yAnchor: 1,
+        zIndex: isClicked ? 8 : 1,
+      });
+      overlay.setMap(mapObjRef.current);
+      overlaysRef.current.push(overlay);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapReady, selectedIds, clickedPlaceId]);
+
+  // 3) 지역 태그 변환 - Expansion 지도의 핀/선택 로직과는 무관하게, mainPlace 좌표 하나로
+  //    딱 한 번만 계산해서 결과 화면 태그로 들고 감. SDK가 이미 로드되어 있으면(위 1번) 재사용.
+  useEffect(() => {
+    let cancelled = false;
+    loadKakaoMapScript().then((kakao) => {
+      if (cancelled) return;
+      getRegionTagViaSDK(kakao, mainPlace.lat, mainPlace.lng).then((tag) => {
+        if (!cancelled) setRegionTag(tag);
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainPlace.lat, mainPlace.lng]);
 
   // [핵심 기능 1] 우상단 원형 체크 표시 토글
   const handleToggleCheck = (e, id) => {
@@ -94,6 +248,15 @@ export default function ExpandSelection() {
     if (cardNode) {
       cardNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+
+    // 지도도 해당 장소 위치로 부드럽게 이동
+    const kakao = window.kakao;
+    if (mapReady && kakao && mapObjRef.current) {
+      const place = MOCK_PLACES.find((p) => p.placeId === id);
+      if (place) {
+        mapObjRef.current.panTo(new kakao.maps.LatLng(place.lat, place.lng));
+      }
+    }
   };
 
   const filteredPlaces = MOCK_PLACES.filter((place) => {
@@ -107,7 +270,9 @@ export default function ExpandSelection() {
       state: {
         next: {
           path: '/result',
-          state: { ...incomingState, selectedPlaceIds: selectedIds },
+          // regionTag: coord2RegionCode로 미리 계산해둔 지역명(시/군/구). result/api.js의
+          // prepareCourseResult가 좌표 변환 없이 이 값을 그대로 태그 조합에 사용함.
+          state: { ...incomingState, selectedPlaceIds: selectedIds, regionTag },
         },
       },
     });
@@ -126,38 +291,15 @@ export default function ExpandSelection() {
         </button>
 
         <div className="map-mock-view">
-          <div className="map-grid-pattern" />
-
-          {/* 메인 관광지 핀 */}
-          <div
-            className="mock-pin main-pin"
-            style={{ top: MOCK_MAIN_PLACE.top, left: MOCK_MAIN_PLACE.left }}
-          >
-            <div className="main-pin-badge">
-              <Compass size={18} color="#ffffff" />
-            </div>
+          {/* 카카오맵이 그려지는 영역. 핀은 위 useEffect에서 CustomOverlay로 그립니다. */}
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }}>
+            {mapError && (
+              <div className="map-error-msg">
+                지도를 불러오지 못했습니다.<br />
+                .env의 VITE_KAKAO_MAP_KEY 값을 확인해주세요.
+              </div>
+            )}
           </div>
-
-          {/* 추가 관광지 핀 목록 */}
-          {MOCK_PLACES.map((place) => {
-            const isSelected = selectedIds.includes(place.placeId);
-            const isClicked = clickedPlaceId === place.placeId;
-
-            return (
-              <button
-                key={place.placeId}
-                className={`mock-pin ${isSelected ? 'selected' : ''} ${isClicked ? 'active' : ''}`}
-                style={{ top: place.top, left: place.left }}
-                onClick={() => handleCardClick(place.placeId)}
-              >
-                <MapPin
-                  size={isClicked ? 32 : 26}
-                  fill={isSelected ? 'var(--color-accent)' : 'var(--color-primary)'}
-                  stroke="none"
-                />
-              </button>
-            );
-          })}
         </div>
       </div>
 
@@ -166,7 +308,7 @@ export default function ExpandSelection() {
         <div className="sheet-header">
           <div className="main-place-tag">
             <Compass size={18} color="var(--color-accent)" />
-            {MOCK_MAIN_PLACE.name}
+            {mainPlace.name}
           </div>
 
           <div className="filter-row">
