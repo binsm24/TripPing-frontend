@@ -8,8 +8,32 @@
 }
 
 .three-select__topbar {
+  position: relative;
   display: flex;
   justify-content: flex-end;
+}
+
+/* MainSpots/ExpandSelection의 좌측 상단 뒤로가기 버튼과 동일한 위치·스타일 */
+.three-select__back-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 15px;
+  border: none;
+  background-color: var(--color-natural);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.three-select__back-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .three-select__archive-btn {

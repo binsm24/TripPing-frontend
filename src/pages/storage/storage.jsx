@@ -39,6 +39,8 @@ function formatDate(isoDate) {
 
 /**
  * 보관함(나의 여행 기록) 화면.
+ * 진입 자체가 ThreeSelect에서 로그인 여부를 확인한 뒤(비회원이면 팝업으로 가로채고 여기까지
+ * 안 옴)라, 이 화면 내부에서는 로그인 분기를 따로 하지 않고 항상 회원 전용 화면으로 취급함.
  *
  * @param {Array} [coursesOverride] - 스토리북/테스트용으로 목록을 직접 주입하고 싶을 때 사용.
  *   전달하지 않으면 GET /api/saved-courses를 호출해서 가져옵니다 (실패 시 목업 데이터로 폴백).

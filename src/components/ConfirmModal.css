@@ -1,0 +1,86 @@
+/* position: fixed가 아니라 absolute인 이유: .mobile-layout(앱 프레임, 최대 480px)이
+   position:relative라서, 여기에 맞춰서 떠야 데스크톱 미리보기에서도 브라우저 전체가 아니라
+   앱 프레임 안에서만 어두워짐. 실제 기기(Capacitor WebView)에서는 프레임=화면이라 차이 없음. */
+.confirm-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 24px;
+}
+
+.confirm-modal__card {
+  width: 100%;
+  max-width: 300px;
+  background: #ffffff;
+  border-radius: var(--radius-card-outer);
+  padding: 28px 20px 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.confirm-modal__title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.confirm-modal__message {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+  white-space: pre-line; /* message에 넘긴 \n을 실제 줄바꿈으로 표시 */
+}
+
+.confirm-modal__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.confirm-modal__btn {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 15px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.confirm-modal__btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.confirm-modal__btn--cancel {
+  background: var(--color-natural);
+  color: var(--color-text);
+}
+
+.confirm-modal__btn--confirm {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+/* Login.jsx의 카카오 로그인 버튼과 동일한 브랜드 색 */
+.confirm-modal__btn--kakao {
+  background: var(--color-kakao);
+  color: var(--color-text);
+}
+
+.confirm-modal__btn-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  flex-shrink: 0;
+}

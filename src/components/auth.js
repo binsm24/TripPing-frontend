@@ -2,6 +2,19 @@
 // TODO: 로그인(카카오) 연동 완료 후, 실제 토큰 저장 방식(localStorage / Context 등)에 맞춰 교체할 것.
 // 지금은 회원/비회원 분기 로직을 미리 짤 수 있도록 더미로만 처리함.
 
+// TODO: 카카오 로그인 SDK 연동 (언니 담당). 여기 하나만 구현하면 로그인 화면 버튼과
+// 보관함의 "바로 로그인" 버튼 등 모든 진입점에서 동일하게 동작함.
+export function startKakaoLogin() {
+  // TODO: 카카오 SDK Kakao.Auth.authorize() 등으로 교체
+}
+
+// TODO: 실제 토큰 저장 방식(localStorage/Context) 붙으면, 여기서 그 토큰을 지우고
+// 필요 시 카카오 로그아웃 API(Kakao.Auth.logout())도 함께 호출하도록 채울 것.
+// 지금은 로그인 자체가 더미라 지울 게 없어서 자리만 마련해둠.
+export function logout() {
+  // TODO: 저장된 토큰 제거 + 카카오 로그아웃 호출
+}
+
 export function getAuthToken() {
   // 임시: 항상 로그인 안 된 상태(비회원)로 취급
   return null;
