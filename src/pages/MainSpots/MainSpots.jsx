@@ -32,58 +32,20 @@ function createSpotPinElement({ color, big }) {
   return wrapper
 }
 
-const SPOTS = [
-  {
-    id: 'majang-lake-1',
-    name: '파주 마장호수',
-    summary:
-      '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
-    thumbnail: null,
-    address: '경기 파주시 광탄면 기산로 313',
-    hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
-    fee: '무료',
-    parking: '마장호수 공영주차장: 제 1~7 주차장\n주차비: 1일 기준 2000원(일반승용)',
-    pet: '반려동물 동반 가능',
-    phone: '031-950-1901',
-  },
-  {
-    id: 'majang-lake-2',
-    name: '파주 마장호수 2호점',
-    summary:
-      '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
-    thumbnail: null,
-    address: '경기 파주시 광탄면 기산로 313',
-    hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
-    fee: '무료',
-    parking: '마장호수 공영주차장: 제 1~7 주차장\n주차비: 1일 기준 2000원(일반승용)',
-    pet: '반려동물 동반 가능',
-    phone: '031-950-1901',
-  },
-  {
-    id: 'majang-lake-3',
-    name: '파주 마장호수 3호점',
-    summary:
-      '파주시에 위치한 인공 호수로, 출렁다리와 잘 정비된 둘레길이 있어 가족 단위 방문객에게 적합한 산책 코스입니다.',
-    thumbnail: null,
-    address: '경기 파주시 광탄면 기산로 313',
-    hours: ['11월~2월 09:00~17:00', '3월~4월 09:00~18:00', '5월~10월 09:00~20:00'],
-    fee: '무료',
-    parking: '마장호수 공영주차장: 제 1~7 주차장\n주차비: 1일 기준 2000원(일반승용)',
-    pet: '반려동물 동반 가능',
-    phone: '031-950-1901',
-  },
-]
-
 function MainSpots() {
   const navigate = useNavigate()
   const location = useLocation()
+  // loading.jsx가 recommendMainSpots() 응답으로 채워서 넘겨줌: recommendationSessionId,
+  // spots(id/name/summary/thumbnail/lat/lng/address/hours/fee/parking/pet/phone), title
+  // + 원래 조건 입력값들(category/age/companion/region/extraRequest)도 그대로 같이 있음.
   const conditionState = location.state ?? {}
+  const spots = conditionState.spots ?? []
 
   const [openSpotId, setOpenSpotId] = useState(null)
   const [selectedId, setSelectedId] = useState(null)
   const [focusedId, setFocusedId] = useState(null)
 
-  const openSpot = openSpotId ? SPOTS.find((s) => s.id === openSpotId) : null
+  const openSpot = openSpotId ? spots.find((s) => s.id === openSpotId) : null
   const canSubmit = selectedId !== null
 
   const cardRefs = useRef({})
@@ -121,61 +83,35 @@ function MainSpots() {
   const overlaysRef = useRef([]) // 현재 지도 위에 떠 있는 커스텀 오버레이(핀) 목록
   const [mapReady, setMapReady] = useState(false)
   const [mapError, setMapError] = useState(false)
-  // 각 관광지 id -> { lat, lng }. 주소를 Geocoder로 변환한 결과를 담아둡니다.
-  const [spotPositions, setSpotPositions] = useState({})
 
-  // 1) SDK 로드 + 지도 생성 + 주소 -> 좌표 변환(Geocoding)
+  // 1) SDK 로드 + 지도 생성.
+  // spots는 추천 API 응답에 lat/lng가 이미 포함돼 있어서(RecommendedPlace 참고),
+  // 예전처럼 주소를 다시 Geocoding할 필요가 없어짐 - 받은 좌표를 그대로 씀.
   useEffect(() => {
     let cancelled = false
 
     loadKakaoMapScript()
       .then((kakao) => {
         if (cancelled || !mapContainerRef.current) return
+        if (spots.length === 0) {
+          setMapReady(true)
+          return
+        }
 
+        const center = new kakao.maps.LatLng(spots[0].lat, spots[0].lng)
         const map = new kakao.maps.Map(mapContainerRef.current, {
-          center: new kakao.maps.LatLng(37.5665, 126.978), // 좌표 계산 전 임시 중심
+          center,
           level: 5,
         })
         mapObjRef.current = map
 
-        const geocoder = new kakao.maps.services.Geocoder()
-        const geocodeSpot = (spot) =>
-          new Promise((resolve) => {
-            geocoder.addressSearch(spot.address, (result, status) => {
-              if (status === kakao.maps.services.Status.OK && result[0]) {
-                resolve({ id: spot.id, lat: Number(result[0].y), lng: Number(result[0].x) })
-              } else {
-                resolve(null)
-              }
-            })
-          })
-
-        Promise.all(SPOTS.map(geocodeSpot)).then((results) => {
-          if (cancelled) return
-          const valid = results.filter(Boolean)
-
-          // 목업 데이터라 주소가 모두 동일해 좌표가 겹칠 수 있습니다.
-          // 완전히 같은 좌표가 나오면 핀이 서로 가려지지 않도록 아주 살짝 흩어줍니다.
-          const seen = new Map()
-          const positions = {}
-          valid.forEach(({ id, lat, lng }) => {
-            const key = `${lat.toFixed(5)},${lng.toFixed(5)}`
-            const duplicateIndex = seen.get(key) ?? 0
-            seen.set(key, duplicateIndex + 1)
-            const jitter = duplicateIndex * 0.0009
-            positions[id] = { lat: lat + jitter, lng: lng + jitter * 1.3 }
-          })
-
-          setSpotPositions(positions)
-          setMapReady(true)
-
-          const coords = Object.values(positions)
-          if (coords.length > 0) {
-            const bounds = new kakao.maps.LatLngBounds()
-            coords.forEach((c) => bounds.extend(new kakao.maps.LatLng(c.lat, c.lng)))
-            map.setBounds(bounds)
-          }
+        const bounds = new kakao.maps.LatLngBounds()
+        spots.forEach((spot) => {
+          if (spot.lat && spot.lng) bounds.extend(new kakao.maps.LatLng(spot.lat, spot.lng))
         })
+        map.setBounds(bounds)
+
+        setMapReady(true)
       })
       .catch(() => {
         if (!cancelled) setMapError(true)
@@ -184,6 +120,7 @@ function MainSpots() {
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 2) 상태(선택/포커스/상세보기)가 바뀔 때마다 핀(커스텀 오버레이) 다시 그리기
@@ -194,9 +131,8 @@ function MainSpots() {
     overlaysRef.current.forEach((overlay) => overlay.setMap(null))
     overlaysRef.current = []
 
-    SPOTS.forEach((spot) => {
-      const pos = spotPositions[spot.id]
-      if (!pos) return
+    spots.forEach((spot) => {
+      if (!spot.lat || !spot.lng) return
 
       const isSelected = selectedId === spot.id
       const isBig = isSelected || focusedId === spot.id || openSpotId === spot.id
@@ -211,7 +147,7 @@ function MainSpots() {
       })
 
       const overlay = new kakao.maps.CustomOverlay({
-        position: new kakao.maps.LatLng(pos.lat, pos.lng),
+        position: new kakao.maps.LatLng(spot.lat, spot.lng),
         content: el,
         xAnchor: 0.5,
         yAnchor: 1,
@@ -220,16 +156,18 @@ function MainSpots() {
       overlay.setMap(mapObjRef.current)
       overlaysRef.current.push(overlay)
     })
-  }, [mapReady, spotPositions, selectedId, focusedId, openSpotId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapReady, spots, selectedId, focusedId, openSpotId])
 
   // 3) 목록에서 카드를 포커스했을 때(또는 핀 클릭) 지도도 해당 위치로 부드럽게 이동
   useEffect(() => {
     const kakao = window.kakao
     if (!mapReady || !kakao || !mapObjRef.current || !focusedId) return
-    const pos = spotPositions[focusedId]
-    if (!pos) return
-    mapObjRef.current.panTo(new kakao.maps.LatLng(pos.lat, pos.lng))
-  }, [focusedId, mapReady, spotPositions])
+    const spot = spots.find((s) => s.id === focusedId)
+    if (!spot?.lat || !spot?.lng) return
+    mapObjRef.current.panTo(new kakao.maps.LatLng(spot.lat, spot.lng))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedId, mapReady])
 
   const handleBack = () => {
     if (openSpotId) {
@@ -245,11 +183,9 @@ function MainSpots() {
 
   const handleSubmit = () => {
     if (!canSubmit) return
-    const spot = SPOTS.find((s) => s.id === selectedId)
-    const pos = spotPositions[selectedId]
-    // Expansion 화면의 지도 중심 + 지역 태그(coord2RegionCode) 변환에 필요해서
-    // Geocoder로 얻은 실제 좌표를 mainSpot에 실어서 넘김
-    const selectedSpot = pos ? { ...spot, lat: pos.lat, lng: pos.lng } : spot
+    const selectedSpot = spots.find((s) => s.id === selectedId)
+    // selectedSpot에 이미 lat/lng가 있어서(추천 API 응답), 별도 좌표 조회 없이 그대로 넘김.
+    // recommendationSessionId도 conditionState에 이미 들어있어 자동으로 같이 전달됨.
     navigate('/loading', {
       state: {
         next: {
@@ -291,7 +227,7 @@ function MainSpots() {
             </div>
           ) : (
             <div className="main-spots__list">
-              {SPOTS.map((spot) => (
+              {spots.map((spot) => (
                 <SpotCard
                   key={spot.id}
                   ref={(el) => (cardRefs.current[spot.id] = el)}
@@ -377,7 +313,7 @@ function SpotCard({
       {expanded && (
         <div className="spot-card__details">
           <DetailRow icon={MapPin} text={spot.address} />
-          <DetailRow icon={Clock} text={spot.hours.join('\n')} />
+          <DetailRow icon={Clock} text={Array.isArray(spot.hours) ? spot.hours.join('\n') : spot.hours} />
           <DetailRow icon={Ticket} text={spot.fee} />
           <DetailRow icon={Car} text={spot.parking} />
           <DetailRow icon={PawPrint} text={spot.pet} />

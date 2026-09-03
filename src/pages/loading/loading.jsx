@@ -4,12 +4,9 @@ import MobileLayout from '../../components/MobileLayout';
 import { formatDisplayName } from '../../components/auth';
 import './loading.css';
 import symbolW from '../../assets/symbolW.png';
-import { mockCourseResult } from '../result/mockData';
-
-// 지금은 백엔드가 없어서 임의로 정해둔 값. 실제로는 "AI 응답(추천/코스 생성 등)이
-// 도착하는 시점"에 로딩이 끝나야 하므로, 이 값과 setTimeout은 최종적으로 삭제되고
-// 아래 useEffect가 실제 API 호출을 await 하는 형태로 바뀔 예정.
-const PLACEHOLDER_DELAY_MS = 1800;
+import { recommendMainSpots, getTravelTypeLabel, getCompanionLabel } from '../MainSpots/api';
+import { recommendNearbyPlaces } from '../expansion/api';
+import { prepareCourseResult } from '../result/api';
 
 function buildPhrases(userName) {
   return [
@@ -20,6 +17,39 @@ function buildPhrases(userName) {
     { rest: '소중한 추억을 쌓으러\n함께 떠나볼까요?' },
     { rest: '여행을 준비하는 지금이\n가장 설레는 순간이에요!' },
   ];
+}
+
+// next.path에 따라 실제로 호출해야 할 API를 결정하고, 그 응답을 다음 화면 state에
+// 어떻게 얹을지를 정의. 화면 하나 늘어날 때마다 여기에 분기 하나씩 추가하면 됨.
+async function resolveNextState(next) {
+  switch (next.path) {
+    case '/spots': {
+      // ConditionInput -> MainSpots: 조건 기반 메인 관광지 추천
+      const { recommendationSessionId, spots } = await recommendMainSpots(next.state);
+      return { ...next.state, recommendationSessionId, spots };
+    }
+    case '/expansion': {
+      // MainSpots -> ExpandSelection: 메인 관광지 주변 확장 추천
+      const places = await recommendNearbyPlaces({
+        mainPlaceId: next.state.mainSpot?.id,
+        recommendationSessionId: next.state.recommendationSessionId,
+      });
+      return { ...next.state, places };
+    }
+    case '/result': {
+      // ExpandSelection -> Result: 코스 생성(+ 로그인 상태면 보관함 자동 저장)
+      const result = await prepareCourseResult({
+        mainPlaceId: next.state.mainSpot?.id,
+        selectedPlaceIds: next.state.selectedPlaceIds ?? [],
+        travelType: getTravelTypeLabel(next.state.category),
+        companion: getCompanionLabel(next.state.companion),
+        regionTag: next.state.regionTag,
+      });
+      return { ...next.state, result };
+    }
+    default:
+      return next.state;
+  }
 }
 
 /**
@@ -85,7 +115,7 @@ export default function LoadingScreen() {
     };
   }, [phrases.length]);
 
-  // 다음 화면으로의 실제 이동 처리
+  // 다음 화면으로의 실제 이동 처리: next.path에 맞는 API를 호출하고, 응답이 오면 이동
   useEffect(() => {
     if (!next?.path) {
       // next 정보 없이 로딩 화면에 바로 들어온 경우 - 처음으로 되돌림
@@ -93,22 +123,24 @@ export default function LoadingScreen() {
       return;
     }
 
-    // TODO: 실제 AI/백엔드 연동 시 아래 setTimeout을 지우고
-    //   const data = await someApiCall(next.state);   // AI 응답이 오면 그 시점에 resolve
-    //   navigate(next.path, { state: { ...next.state, ...data }, replace: true });
-    // 형태의 비동기 호출로 교체하면 됨. (= AI 응답 준비 완료 == 로딩 종료)
-    const timer = setTimeout(() => {
-      // /result로 가는데 아직 실제 코스 생성 결과(result)가 없다면(백엔드 미연동 상태)
-      // 화면이 비어보이지 않도록 목업 결과로 대체해서 넘겨줌.
-      const resolvedState =
-        next.path === '/result' && !next.state?.result
-          ? { ...next.state, result: { ...mockCourseResult, userName } }
-          : next.state;
+    let cancelled = false;
 
-      navigate(next.path, { state: resolvedState, replace: true });
-    }, PLACEHOLDER_DELAY_MS);
+    resolveNextState(next)
+      .then((resolvedState) => {
+        if (cancelled) return;
+        navigate(next.path, { state: resolvedState, replace: true });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error(`[loading] ${next.path} 준비 중 오류:`, err);
+        // TODO: 에러 화면/토스트 등 정식 UX가 정해지면 alert 대신 그걸로 교체
+        alert(err.message || '요청 처리 중 문제가 발생했어요. 다시 시도해주세요.');
+        navigate(-1);
+      });
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [next, navigate]);
 
