@@ -40,54 +40,13 @@ function createPlacePinElement({ color, active }) {
   return wrapper;
 }
 
-// MOCK DATA (추가 추천 관광지 목록).
-// TODO: 실제로는 백엔드가 각 장소의 위도(lat)/경도(lng)를 내려줘야 합니다.
-// 지금은 백엔드가 없어서 마장호수(메인 관광지) 주변에 임의로 좌표를 흩어 놓은 목업입니다.
+// 메인 관광지가 없을 때(직접 이 경로로 진입 등) 지도 중심을 잡기 위한 최소한의 폴백.
 const FALLBACK_MAIN_PLACE = {
   placeId: 'main-01',
-  name: '파주 마장호수',
-  lat: 37.8189,
-  lng: 126.902,
+  name: '관광지',
+  lat: 37.5665,
+  lng: 126.978,
 };
-
-const MOCK_PLACES = [
-  {
-    placeId: 'place-01',
-    name: '와우동 우동전문점',
-    category: '식당',
-    summary: '효능이 매력적인 우동 전문점. 설명이 두 줄로 이상 반응하는 경우 상단으로 이동합니다.',
-    imageUrl: 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=300',
-    lat: 37.8175,
-    lng: 126.9105,
-  },
-  {
-    placeId: 'place-02',
-    name: '레드브릿지 베이커리 카페',
-    category: '카페',
-    summary: '마장호수 출렁다리가 전체적으로 보이는 아름다운 커리 카페',
-    imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300',
-    lat: 37.821,
-    lng: 126.907,
-  },
-  {
-    placeId: 'place-03',
-    name: '기산리와',
-    category: '관광지',
-    summary: '조용하고 조각적인 전시를 즐길 수 있는 문화 공간',
-    imageUrl: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=300',
-    lat: 37.814,
-    lng: 126.913,
-  },
-  {
-    placeId: 'place-04',
-    name: 'B코스',
-    category: '관광지',
-    summary: '가족들과 함께 산책하는 것은 독점적인 코스입니다.',
-    imageUrl: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=300',
-    lat: 37.8225,
-    lng: 126.8975,
-  },
-];
 
 const CATEGORIES = ['전체', '관광지', '식당', '카페'];
 
@@ -95,6 +54,9 @@ export default function ExpandSelection() {
   const navigate = useNavigate();
   const location = useLocation();
   const incomingState = location.state ?? {};
+  // loading.jsx가 recommendNearbyPlaces() 응답으로 채워서 넘겨줌
+  // (placeId/name/category/summary/imageUrl/lat/lng)
+  const places = incomingState.places ?? [];
 
   const cardRefs = useRef(new Map());
 
@@ -142,8 +104,8 @@ export default function ExpandSelection() {
 
         const bounds = new kakao.maps.LatLngBounds();
         bounds.extend(new kakao.maps.LatLng(mainPlace.lat, mainPlace.lng));
-        MOCK_PLACES.forEach((place) => {
-          bounds.extend(new kakao.maps.LatLng(place.lat, place.lng));
+        places.forEach((place) => {
+          if (place.lat && place.lng) bounds.extend(new kakao.maps.LatLng(place.lat, place.lng));
         });
         map.setBounds(bounds);
 
@@ -179,7 +141,8 @@ export default function ExpandSelection() {
     overlaysRef.current.push(mainOverlay);
 
     // 추가 추천 장소 핀
-    MOCK_PLACES.forEach((place) => {
+    places.forEach((place) => {
+      if (!place.lat || !place.lng) return
       const isSelected = selectedIds.includes(place.placeId);
       const isClicked = clickedPlaceId === place.placeId;
       const color = isSelected
@@ -203,7 +166,7 @@ export default function ExpandSelection() {
       overlaysRef.current.push(overlay);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapReady, selectedIds, clickedPlaceId]);
+  }, [mapReady, places, selectedIds, clickedPlaceId]);
 
   // 3) 지역 태그 변환 - Expansion 지도의 핀/선택 로직과는 무관하게, mainPlace 좌표 하나로
   //    딱 한 번만 계산해서 결과 화면 태그로 들고 감. SDK가 이미 로드되어 있으면(위 1번) 재사용.
@@ -252,14 +215,14 @@ export default function ExpandSelection() {
     // 지도도 해당 장소 위치로 부드럽게 이동
     const kakao = window.kakao;
     if (mapReady && kakao && mapObjRef.current) {
-      const place = MOCK_PLACES.find((p) => p.placeId === id);
+      const place = places.find((p) => p.placeId === id);
       if (place) {
         mapObjRef.current.panTo(new kakao.maps.LatLng(place.lat, place.lng));
       }
     }
   };
 
-  const filteredPlaces = MOCK_PLACES.filter((place) => {
+  const filteredPlaces = places.filter((place) => {
     if (activeCategory === '전체') return true;
     return place.category === activeCategory;
   });
