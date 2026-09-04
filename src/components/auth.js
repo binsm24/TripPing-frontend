@@ -83,12 +83,18 @@ export async function startKakaoLogin() {
 // URL에 ?code=가 있으면 백엔드로 넘겨 로그인 처리하고 true를,
 // 그냥 방문한 거면(코드 없음) 아무 것도 안 하고 false를 반환.
 // 카카오가 에러를 실어 보낸 경우(사용자가 로그인 취소 등)는 에러를 던짐.
+let isHandlingRedirect = false;
+
 export async function handleKakaoRedirect() {
   const params = new URLSearchParams(window.location.search);
   const error = params.get('error');
   const code = params.get('code');
 
   if (!error && !code) return false;
+
+  // StrictMode로 인한 2중 호출 방지
+  if (isHandlingRedirect) return false;
+  isHandlingRedirect = true;
 
   try {
     if (error) {
