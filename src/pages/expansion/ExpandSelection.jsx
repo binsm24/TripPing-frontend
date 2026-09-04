@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Compass } from 'lucide-react';
 import MobileLayout from '../../components/MobileLayout';
-import { loadKakaoMapScript, getCssVar, getRegionTagViaSDK } from '../../components/kakaoMap';
+import { loadKakaoMapScript, getCssVar } from '../../components/kakaoMap';
 import './ExpandSelection.css';
 
 // 메인 관광지 핀 (원형 배지 + Compass 아이콘). .main-pin-badge 스타일과 동일하게 맞췄습니다.
@@ -85,8 +85,6 @@ export default function ExpandSelection() {
   const overlaysRef = useRef([]);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
-  // 좌표 -> 지역명(시/군/구). 결과 화면 태그에 쓰기 위해 mainPlace 좌표로 1회만 계산.
-  const [regionTag, setRegionTag] = useState(null);
 
   // 1) SDK 로드 + 지도 생성 (메인 관광지 + 추가 추천 장소가 모두 보이도록 범위 조정)
   useEffect(() => {
@@ -168,22 +166,6 @@ export default function ExpandSelection() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapReady, places, selectedIds, clickedPlaceId]);
 
-  // 3) 지역 태그 변환 - Expansion 지도의 핀/선택 로직과는 무관하게, mainPlace 좌표 하나로
-  //    딱 한 번만 계산해서 결과 화면 태그로 들고 감. SDK가 이미 로드되어 있으면(위 1번) 재사용.
-  useEffect(() => {
-    let cancelled = false;
-    loadKakaoMapScript().then((kakao) => {
-      if (cancelled) return;
-      getRegionTagViaSDK(kakao, mainPlace.lat, mainPlace.lng).then((tag) => {
-        if (!cancelled) setRegionTag(tag);
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mainPlace.lat, mainPlace.lng]);
-
   // [핵심 기능 1] 우상단 원형 체크 표시 토글
   const handleToggleCheck = (e, id) => {
     e.stopPropagation();
@@ -233,9 +215,7 @@ export default function ExpandSelection() {
       state: {
         next: {
           path: '/result',
-          // regionTag: coord2RegionCode로 미리 계산해둔 지역명(시/군/구). result/api.js의
-          // prepareCourseResult가 좌표 변환 없이 이 값을 그대로 태그 조합에 사용함.
-          state: { ...incomingState, selectedPlaceIds: selectedIds, regionTag },
+          state: { ...incomingState, selectedPlaceIds: selectedIds },
         },
       },
     });

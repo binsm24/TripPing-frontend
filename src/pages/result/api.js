@@ -1,16 +1,37 @@
 // src/pages/result/api.js
 // 결과 화면 전용 API/유틸을 한 파일로 모음: 코스 생성, 보관함 저장, 오케스트레이션
 //
-// 좌표 -> 지역명 변환은 여기서 REST로 하지 않음. Expansion 화면이 카카오맵 SDK를
-// 이미 로드한 김에 coord2RegionCode(services 라이브러리, JS 키만 사용)로 미리 계산해서
-// regionTag 문자열로 넘겨주고, 여기서는 그 값을 그대로 받아쓰기만 함.
-// (REST 키/Authorization 헤더/도메인 별도 등록 불필요 - src/components/kakaoMap.js 참고)
+// tags는 백엔드가 이미 완성된 형태로 내려줌(예: ["자연","산책","수원여행","친구와 함께"]).
+// 실제 응답 테스트로 확인된 부분이라, 프론트에서 travelType/지역/동행자를 따로 조합해서
+// 앞에 붙이지 않음(중복 태그가 생겼었음).
 import { apiPost } from '../../api/client';
 import { isLoggedIn, getUserId } from '../../components/auth';
 
 // ---------- 코스 생성: POST /api/courses ----------
-async function createCourse(mainPlaceId, selectedPlaceIds) {
-  return apiPost('/api/courses', { mainPlaceId, selectedPlaceIds });
+// 실제 테스트해보니 CourseCreateRequest는 RecommendationRequest와 거의 같은 조건 필드에
+// mainPlaceId/recommendationSessionId/selectedPlaceIds가 추가된 형태였음 (스웨거 스키마만
+// 보고 짰을 땐 mainPlaceId+selectedPlaceIds만 필요한 줄 알았는데 실제로는 더 필요했음).
+async function createCourse({
+  mainPlaceId,
+  recommendationSessionId,
+  region,
+  travelType,
+  age,
+  companion,
+  requirement,
+  selectedPlaceIds,
+}) {
+  return apiPost('/api/courses', {
+    mainPlaceId,
+    recommendationSessionId,
+    ...(region ? { region } : {}),
+    travelType,
+    age,
+    companion,
+    ...(requirement ? { requirement } : {}),
+    // 실제 테스트 요청에서 selectedPlaceIds에 mainPlaceId가 안 겹쳐 있었음 -> 그대로 보냄
+    selectedPlaceIds,
+  });
 }
 
 // ---------- 보관함 저장: POST /api/saved-courses (userId는 쿼리 파라미터) ----------
@@ -23,16 +44,15 @@ const formatTag = (t) =>
 
 // CourseResponse -> CourseResultView(courseData)가 기대하는 형태로 변환.
 // CoursePlaceResponse에는 'description'이 아니라 'summary'로 내려오는 것만 맞춰주면 나머지는 동일.
-function adaptCourseResponse(courseData, extraTags) {
+// tags는 실제 응답에서 이미 완성된 형태로 옴(예: ["자연","산책","수원여행","친구와 함께","카페투어"]).
+// 프론트에서 travelType/지역/동행자를 따로 조합해서 앞에 붙이면 중복 태그가 생겨서, 그대로 씀.
+function adaptCourseResponse(courseData) {
   const places = (courseData.places ?? []).map((p) => ({
     ...p,
     description: p.summary,
   }));
 
-  // 태그 순서: 유형 - 지역 - 동행자 - AI가 생성한 태그들
-  const tags = [...extraTags, ...(courseData.tags ?? [])]
-    .map(formatTag)
-    .filter(Boolean);
+  const tags = (courseData.tags ?? []).map(formatTag).filter(Boolean);
 
   return { ...courseData, places, tags };
 }
@@ -43,26 +63,36 @@ function adaptCourseResponse(courseData, extraTags) {
  *
  * @param {object} params
  * @param {string} params.mainPlaceId
+ * @param {string} params.recommendationSessionId
  * @param {string[]} params.selectedPlaceIds - Expansion에서 추가로 선택한 장소 ID 목록
- *   (mainPlaceId 자체를 포함해야 하는지는 스웨거 예시가 애매해서, 일단 안 겹치게 mainPlaceId를
- *   앞에 붙여서 보냄. 실제 동작 확인되면 이 부분 조정 필요)
- * @param {string} params.travelType - 자연/도시/복합 (앞 단계 사용자 선택)
- * @param {string} params.companion - 동행자 (앞 단계 사용자 선택)
- * @param {string|null} params.regionTag - Expansion 화면에서 카카오맵 SDK(coord2RegionCode)로
- *   미리 변환해둔 지역명(시/군/구)
+ *   (mainPlaceId는 포함하지 않음 - 실제 응답 확인 결과 겹치면 안 됨)
+ * @param {string} [params.region] - 선호 지역 (예: '수원')
+ * @param {string} params.travelType - 자연/도시/복합
+ * @param {number} params.age
+ * @param {string} params.companion - 동행자
+ * @param {string} [params.requirement] - 추가 요구사항
  * @returns {Promise<object>} 결과 화면에서 바로 쓸 수 있는 완성된 코스 데이터 (tags 배열 포함)
  */
 export async function prepareCourseResult({
   mainPlaceId,
+  recommendationSessionId,
   selectedPlaceIds,
+  region,
   travelType,
+  age,
   companion,
-  regionTag,
+  requirement,
 }) {
-  // CourseCreateRequest 예시를 보면 selectedPlaceIds에 mainPlaceId도 포함된 형태라
-  // 그에 맞춰 합쳐서 보냄 (중복 없이)
-  const allPlaceIds = Array.from(new Set([mainPlaceId, ...selectedPlaceIds]));
-  const courseData = await createCourse(mainPlaceId, allPlaceIds);
+  const courseData = await createCourse({
+    mainPlaceId,
+    recommendationSessionId,
+    region,
+    travelType,
+    age,
+    companion,
+    requirement,
+    selectedPlaceIds,
+  });
 
   // 보관함 자동 저장(회원만) - 결과 화면 진입을 지연시키지 않도록 fire-and-forget
   const userId = getUserId();
@@ -73,5 +103,5 @@ export async function prepareCourseResult({
     });
   }
 
-  return adaptCourseResponse(courseData, [travelType, regionTag, companion]);
+  return adaptCourseResponse(courseData);
 }
