@@ -1,9 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookMarked, ChevronLeft, LogOut } from 'lucide-react';
 import MobileLayout from '../../components/MobileLayout';
 import ConfirmModal from '../../components/ConfirmModal';
-import { getUserName, formatDisplayName, isLoggedIn, logout, startKakaoLogin } from '../../components/auth';
+import {
+  getUserName,
+  formatDisplayName,
+  isLoggedIn,
+  logout,
+  startKakaoLogin,
+  handleKakaoRedirect,
+} from '../../components/auth';
 import symbol from '../../assets/symbol.png';
 import natureImg from '../../assets/nature.jpg';
 import cityImg from '../../assets/city.jpg';
@@ -18,11 +25,28 @@ const CATEGORIES = [
 
 export default function ThreeSelect() {
   const navigate = useNavigate();
+  // isLoggedIn/getUserName은 localStorage를 읽는 함수라 그 자체로는 리렌더를 안 일으킴.
+  // 카카오 로그인 리다이렉트 처리가 끝난 뒤 화면을 갱신시키기 위한 트리거용 상태.
+  const [, setAuthTick] = useState(0);
   const loggedIn = isLoggedIn();
   // 카카오 로그인 닉네임이 있으면 그 이름, 비회원이면 '여행자'
   const displayName = formatDisplayName(getUserName());
   // 비회원이 보관함 버튼을 눌렀을 때, 화면 이동 없이 그 자리에서 띄우는 로그인 안내 팝업
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // /select는 카카오 로그인 Redirect URI. 카카오에서 ?code=...를 달고 돌아온 경우에만
+  // 백엔드로 로그인 처리를 위임하고, 평소 방문(코드 없음)일 땐 아무 일도 안 일어남.
+  useEffect(() => {
+    handleKakaoRedirect()
+      .then((handled) => {
+        if (handled) setAuthTick((v) => v + 1); // 로그인 성공 -> loggedIn/displayName 다시 계산되도록 리렌더
+      })
+      .catch((err) => {
+        // TODO: 토스트/모달 등 디자인이 정해지면 alert 대신 그걸로 교체
+        console.error('카카오 로그인 실패:', err);
+        alert(err.message || '카카오 로그인에 실패했습니다.');
+      });
+  }, []);
 
   const handleArchive = () => {
     if (!loggedIn) {
