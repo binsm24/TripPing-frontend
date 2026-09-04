@@ -4,20 +4,9 @@
 import { apiPost } from '../../api/client';
 
 // ConditionInput의 companion 키(alone/friend/pet/parents/kid/partner) ->
-// 백엔드 RecommendationRequest.companion enum(연인/아이/가족/친구).
-//
-// TODO(팀 확인 필요): '혼자'와 '반려동물'은 백엔드 enum에 아예 없어서 정확히 대응되는 값이
-// 없음. 일단 아래처럼 그나마 가까운 값으로 임시 매핑해뒀는데, 실제로 어떻게 취급할지는
-// 백엔드/기획과 맞춰서 정해야 함 (enum에 추가할지, 프론트에서 다른 값으로 보낼지 등).
-const COMPANION_ENUM_MAP = {
-  alone: '친구', // TODO: 임시값. '혼자' 대응 enum 없음
-  friend: '친구',
-  pet: '가족', // TODO: 임시값. '반려동물' 대응 enum 없음
-  parents: '가족',
-  kid: '아이',
-  partner: '연인',
-};
-
+// 백엔드 RecommendationRequest.companion enum.
+// 백엔드 enum이 UI의 6종(혼자/친구/반려동물/부모님/아이/연인)과 동일하게 확장돼서,
+// 화면 표시용 라벨(COMPANION_LABELS)을 그대로 API 요청값으로도 씀 - 별도 근사 매핑 불필요.
 const CATEGORY_TO_TRAVEL_TYPE = {
   nature: '자연',
   city: '도시',
@@ -25,8 +14,7 @@ const CATEGORY_TO_TRAVEL_TYPE = {
 };
 
 // ConditionInput의 COMPANION_TYPES 키 -> 실제 한글 라벨.
-// 위 COMPANION_ENUM_MAP과 다른 용도: 이건 결과 화면 태그 등 "화면에 보여줄 텍스트"용이고,
-// COMPANION_ENUM_MAP은 "백엔드 enum에 맞춰 보내야 하는 값"용이라 각각 따로 둠.
+// 화면 표시(결과 태그 등)와 API 요청값(companion) 양쪽에 다 씀.
 export const COMPANION_LABELS = {
   alone: '혼자',
   friend: '친구',
@@ -54,9 +42,9 @@ export function buildRecommendationRequest(condition) {
   return {
     travelType: CATEGORY_TO_TRAVEL_TYPE[category] ?? '자연',
     age: Number(age),
-    companion: COMPANION_ENUM_MAP[companion] ?? '친구',
+    companion: COMPANION_LABELS[companion] ?? companion,
     // '없음'(선호 지역 미선택)이면 region 필드 자체를 생략
-    ...(region && region !== '없음' ? { region: `경기도 ${region}` } : {}),
+    ...(region && region !== '없음' ? region: {}),
     ...(extraRequest ? { requirement: extraRequest } : {}),
   };
 }
