@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MobileLayout from '../../components/MobileLayout';
-import { formatDisplayName } from '../../components/auth';
+import { formatDisplayName, getUserName } from '../../components/auth';
 import './loading.css';
 import symbolW from '../../assets/symbolW.png';
 import { recommendMainSpots, getTravelTypeLabel, getCompanionLabel } from '../MainSpots/api';
@@ -40,10 +40,13 @@ async function resolveNextState(next) {
       // ExpandSelection -> Result: 코스 생성(+ 로그인 상태면 보관함 자동 저장)
       const result = await prepareCourseResult({
         mainPlaceId: next.state.mainSpot?.id,
+        recommendationSessionId: next.state.recommendationSessionId,
         selectedPlaceIds: next.state.selectedPlaceIds ?? [],
+        region: next.state.region,
         travelType: getTravelTypeLabel(next.state.category),
+        age: Number(next.state.age),
         companion: getCompanionLabel(next.state.companion),
-        regionTag: next.state.regionTag,
+        requirement: next.state.extraRequest,
       });
       return { ...next.state, result };
     }
@@ -72,7 +75,10 @@ export default function LoadingScreen() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { userName, next } = location.state ?? {};
+  const { userName: stateUserName, next } = location.state ?? {};
+
+  // 넘겨받은 userName이 없으면 localStorage에 저장된 실제 유저 이름 조회
+  const userName = stateUserName || getUserName();
 
   const phrases = useMemo(() => buildPhrases(userName), [userName]);
 

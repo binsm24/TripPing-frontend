@@ -1,6 +1,7 @@
 // src/api/client.js
 // 백엔드 공통 응답 포맷( {status, success, message, data} )을 다루는 fetch 공용 유틸.
 // 화면별 api.js 파일들이 이걸 가져다 씀.
+import { getAuthToken } from '../components/auth';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -13,14 +14,24 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
+  // 1. localStorage에서 저장된 JWT 토큰 조회
+  const token = getAuthToken();
+
+  // 2. 기본 헤더 구성 및 토큰 존재 시 Authorization 헤더 추가
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   let res;
   try {
     res = await fetch(`${BASE_URL}${path}`, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     });
   } catch (err) {
     // 네트워크 자체가 실패한 경우 (서버 꺼짐, CORS 등)

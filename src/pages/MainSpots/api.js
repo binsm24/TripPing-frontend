@@ -56,16 +56,16 @@ function adaptPlace(place) {
   return {
     id: place.placeId,
     name: place.name,
-    summary: place.summary,
+    summary: place.description || place.summary,
     thumbnail: place.imageUrl || null,
     lat: place.latitude,
     lng: place.longitude,
-    address: '정보 없음',
-    hours: ['정보 없음'],
-    fee: '정보 없음',
-    parking: '정보 없음',
-    pet: '정보 없음',
-    phone: '정보 없음',
+    address: place.address || '정보 없음',
+    hours: place.hours || '정보 없음',
+    fee: place.fee || '정보 없음',
+    parking: place.parking || '정보 없음',
+    pet: place.pet || '정보 없음',
+    phone: place.phoneNumber || '정보 없음',
   };
 }
 
